@@ -819,12 +819,12 @@ header {
 
 /* 
   =========================================
-  요금제 전용 스타일 (정밀 줄맞춤 패치)
+  요금제 전용 스타일 (세로 상시 유지)
   =========================================
 */
 .pricing-grid {
   display: flex;
-  flex-direction: column;
+  flex-direction: column; /* 항시 세로 정렬 유지 */
   gap: 16px;
   margin-top: 10px;
 }
@@ -836,8 +836,8 @@ header {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* 높이가 달라도 하단 정렬 통일 */
-  min-height: 154px;
+  justify-content: space-between;
+  min-height: auto; /* 세로 정렬 시 가변 높이 수용 */
   transition: all 0.3s ease;
 }
 
@@ -878,7 +878,6 @@ header {
   width: 100%;
 }
 
-/* 칼맞춤을 위한 좌우 Flex 레이아웃 보장 */
 .price-val-row {
   display: flex;
   justify-content: space-between;
@@ -901,7 +900,6 @@ header {
   gap: 6px;
 }
 
-/* 취소선(정상가) 데코레이션 스타일 */
 .price-strike-label {
   font-size: 10px;
   text-decoration: line-through;
@@ -930,13 +928,7 @@ header {
   .mobile-nav-bar {
     display: none;
   }
-  .pricing-grid {
-    flex-direction: row;
-  }
-  .price-item {
-    flex: 1;
-    min-height: 172px; /* 가로 배열 시 다단 높이 정밀 고정 */
-  }
+  /* 데스크톱 가로 레이아웃 분기 삭제 (세로 3행 상시 정렬 유지) */
 }
 
 @media (max-width: 768px) {
