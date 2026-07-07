@@ -162,7 +162,7 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의 (이동준 관리자 계정 직권 추가)
+// 회원 명부 데이터 정의
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7] },
   { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 95, count: 155, date: "25.05.19", intro: "O", chat: "O", monthly: [10, 13, 15, 12, 14, 8], allHistory: [8, 14, 12, 15, 13, 10, 11, 15, 14, 14, 11, 9, 5, 8] },
@@ -180,6 +180,33 @@ let state = {
   activeTab: "home"
 };
 
+// [강제 초기화 보강] 로컬스토리지 내에 '이동준' 정보가 정상 식별되지 않으면 
+// 로컬 스토리지를 전면 비우고, 강제로 DEFAULT 명단을 재조정 탑재합니다.
+function initForceSync() {
+  const cachedMembers = localStorage.getItem('boardgye_members');
+  let needReset = false;
+
+  if (cachedMembers) {
+    try {
+      const parsed = JSON.parse(cachedMembers);
+      // '이동준' 데이터가 아예 없는 구형 캐시의 경우 리셋 대상
+      const hasDongjun = parsed.some(m => m.name === "이동준");
+      if (!hasDongjun) {
+        needReset = true;
+      }
+    } catch(e) {
+      needReset = true;
+    }
+  } else {
+    needReset = true;
+  }
+
+  if (needReset) {
+    console.log("이동준 마스터 계정 강제 동기화 리셋을 단행합니다.");
+    localStorage.clear(); // 기존 로컬 캐시를 전면 청소하여 꼬임을 원천 차단
+  }
+}
+
 function loadData() {
   const events = localStorage.getItem('boardgye_events');
   const members = localStorage.getItem('boardgye_members');
@@ -188,26 +215,6 @@ function loadData() {
   state.events = events ? JSON.parse(events) : [...DEFAULT_EVENTS];
   state.members = members ? JSON.parse(members) : [...DEFAULT_MEMBERS];
   state.isAdmin = isAdmin ? JSON.parse(isAdmin) : true;
-}
-
-// 명단에 '이동준' 정보가 누락되어 있거나 캐시 구조가 구버전일 경우, 
-// 즉각 캐시를 강제 동기화시켜 항상 로그인되도록 복구해주는 로직
-function initForceSync() {
-  const cachedMembers = localStorage.getItem('boardgye_members');
-  if (cachedMembers) {
-    try {
-      const parsed = JSON.parse(cachedMembers);
-      // '이동준' 회원이 캐시에 누락되어 있을 경우에 한해 강제 초기화
-      const hasDongjun = parsed.some(m => m.name === "이동준");
-      if (!hasDongjun) {
-        console.log("이동준 계정 직권 생성 동기화를 위해 스토리지를 갱신합니다.");
-        localStorage.removeItem('boardgye_members');
-        localStorage.removeItem('boardgye_events');
-      }
-    } catch(e) {
-      localStorage.removeItem('boardgye_members');
-    }
-  }
 }
 
 function saveData() {
@@ -245,6 +252,11 @@ function handleLoginSubmit(e) {
   e.preventDefault();
   const name = document.getElementById('login-name').value.trim();
   const pw = document.getElementById('login-password').value.trim();
+
+  // 안전 장치: 런타임에 메모리 state.members가 빌 경우 비상 대입
+  if (state.members.length === 0) {
+    state.members = [...DEFAULT_MEMBERS];
+  }
 
   const user = state.members.find(m => m.name === name);
   if (user) {
@@ -1028,7 +1040,7 @@ function initEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initForceSync(); // '이동준' 계정 유입을 보장하는 캐시 제거 로직
+  initForceSync(); // 로컬 메모리를 즉시 리셋하여 계정 정보를 무조건 바인딩
   loadData();
   initTabs();
   initRoleToggle();
