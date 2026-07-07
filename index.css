@@ -34,11 +34,6 @@ body {
   scroll-behavior: smooth;
 }
 
-/* 
-  =========================================
-  [신규] 로그인 화면 디자인
-  =========================================
-*/
 .login-overlay {
   position: fixed;
   top: 0;
@@ -65,11 +60,6 @@ body {
   animation: modalScaleUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-/* 
-  =========================================
-  유니버셜 하이브리드 레이아웃
-  =========================================
-*/
 .app-wrapper {
   display: flex;
   width: 100%;
@@ -277,11 +267,6 @@ header {
   color: #c4b5fd;
 }
 
-/* 
-  =========================================
-  출석 패스 (Pass) 디자인
-  =========================================
-*/
 .attendance-pass-card {
   background: linear-gradient(135deg, rgba(167, 139, 250, 0.15) 0%, rgba(244, 114, 182, 0.05) 100%), var(--panel-bg);
   border: 1px solid rgba(167, 139, 250, 0.25);
@@ -367,7 +352,6 @@ header {
   background: rgba(167, 139, 250, 0.08);
 }
 
-/* 프리미엄 일반 글래스 카드 */
 .glass-card {
   background: var(--panel-bg);
   border: 1px solid var(--border-color);
@@ -381,7 +365,6 @@ header {
   border-color: rgba(255, 255, 255, 0.15);
 }
 
-/* 통계 그리드 */
 .summary-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -405,7 +388,6 @@ header {
   font-weight: 800;
 }
 
-/* 게이지 바 */
 .progress-bar-container {
   width: 100%;
   height: 8px;
@@ -423,7 +405,6 @@ header {
   transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* 섹션 타이틀 */
 .section-title {
   font-family: var(--font-title);
   font-size: 20px;
@@ -440,7 +421,6 @@ header {
   margin-top: 4px;
 }
 
-/* 리스트 */
 .event-list {
   display: flex;
   flex-direction: column;
@@ -544,7 +524,6 @@ header {
   margin-left: 0;
 }
 
-/* 프리미엄 버튼 */
 .btn {
   background: var(--primary-glow);
   color: #fff;
@@ -595,7 +574,6 @@ header {
   box-shadow: 0 4px 14px rgba(239, 68, 68, 0.25);
 }
 
-/* 순위표 리스트 */
 .rank-list {
   display: flex;
   flex-direction: column;
@@ -642,7 +620,6 @@ header {
   color: var(--primary-color);
 }
 
-/* 생성 모달 */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -697,7 +674,6 @@ header {
   border: none;
 }
 
-/* 폼 그룹 */
 .form-group {
   display: flex;
   flex-direction: column;
@@ -727,7 +703,6 @@ header {
   border-color: var(--primary-color);
 }
 
-/* 성공 토스트 */
 .toast {
   position: fixed;
   bottom: 30px;
@@ -750,11 +725,6 @@ header {
   transform: translateX(-50%) translateY(0);
 }
 
-/* 
-  =========================================
-  프로필 참석율 그래프 스타일 정의
-  =========================================
-*/
 .chart-container {
   display: flex;
   height: 200px;
@@ -849,6 +819,87 @@ header {
 
 /* 
   =========================================
+  [신규] 요금제 전용 스타일
+  =========================================
+*/
+.pricing-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.price-item {
+  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 16px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.3s ease;
+}
+
+.price-item:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.price-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.price-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.price-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.price-values {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.price-val-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+}
+
+.price-val-row:last-child {
+  border: none;
+  padding: 0;
+}
+
+.price-label {
+  color: var(--text-muted);
+}
+
+.price-money {
+  font-family: var(--font-title);
+  font-weight: 800;
+  font-size: 15px;
+  color: #fff;
+}
+
+/* 
+  =========================================
   미디어 쿼리
   =========================================
 */
@@ -858,6 +909,13 @@ header {
   }
   .mobile-nav-bar {
     display: none;
+  }
+  /* 데스크톱에서는 요금제 그리드를 가로 3열 레이아웃으로 변경 */
+  .pricing-grid {
+    flex-direction: row;
+  }
+  .price-item {
+    flex: 1;
   }
 }
 
