@@ -162,10 +162,10 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의 (상생권, 무료증정권, 정기권 세션 필드 추가)
+// 회원 명부 데이터 정의 (이동준 가입일 25.11.17 및 참석 29회 스펙 정밀 세팅)
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7], pass5Count: 3, freePassCount: 1, monthlyPassExpiry: "2026-08-31" },
-  { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 95, count: 155, date: "25.05.19", intro: "O", chat: "O", monthly: [10, 13, 15, 12, 14, 8], allHistory: [8, 14, 12, 15, 13, 10, 11, 15, 14, 14, 11, 9, 5, 8], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 75, count: 29, date: "25.11.17", intro: "O", chat: "O", monthly: [3, 4, 1, 5, 6, 1], allHistory: [1, 6, 5, 1, 4, 3, 1, 5, 3, 0, 0, 0, 0, 0], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
   { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
   { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4], pass5Count: 0, freePassCount: 2, monthlyPassExpiry: "" },
   { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
@@ -180,7 +180,7 @@ let state = {
   activeTab: "home"
 };
 
-// 강제 캐시 초기화 및 멤버십 속성(pass5Count, freePassCount, monthlyPassExpiry) 마이그레이션 적용
+// 강제 캐시 초기화 및 멤버십 속성(pass5Count, freePassCount, monthlyPassExpiry) 마일그레이션 적용
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
   let needReset = false;
@@ -188,11 +188,10 @@ function initForceSync() {
   if (cachedMembers) {
     try {
       const parsed = JSON.parse(cachedMembers);
-      const hasDongjun = parsed.some(m => m.name === "이동준");
-      // 신규 필드(pass5Count)가 누락된 구버전 캐시의 경우 리셋 단행
-      const hasNewFields = parsed.length > 0 && parsed[0].pass5Count !== undefined;
+      const dongjunMember = parsed.find(m => m.name === "이동준");
       
-      if (!hasDongjun || !hasNewFields) {
+      // 이동준 계정의 가입일이 '25.11.17'이 아니거나 카운트가 29가 아닌 경우 강제 리셋 동기화
+      if (!dongjunMember || dongjunMember.date !== "25.11.17" || dongjunMember.count !== 29) {
         needReset = true;
       }
     } catch(e) {
@@ -203,7 +202,7 @@ function initForceSync() {
   }
 
   if (needReset) {
-    console.log("새로운 패스 정밀 데이터 적용을 위해 로컬 캐시를 초기화합니다.");
+    console.log("이동준 마스터의 정확한 활동 통계 적용을 위해 스토리지를 갱신합니다.");
     localStorage.clear();
   }
 }
@@ -497,7 +496,7 @@ window.handlePassAttendance = function(eventId) {
       myProfile.rate = Math.min(100, Math.round(myProfile.rate + 1));
 
       // [자동 차감 로직 실행]
-      // 1순위: 대동결의권 (월 정기권 유효성 검사)
+      // 1순위: 대동결의권
       let hasValidMonthly = false;
       if (myProfile.monthlyPassExpiry) {
         const expiryDate = new Date(myProfile.monthlyPassExpiry);
@@ -603,7 +602,6 @@ window.openMemberProfile = function(memberName) {
   document.getElementById('edit-member-intro-chk').checked = (member.intro === 'O');
   document.getElementById('edit-member-chat-chk').checked = (member.chat === 'O');
 
-  // 패스 데이터 바인딩
   document.getElementById('edit-pass-5-input').value = member.pass5Count || 0;
   document.getElementById('edit-pass-free-input').value = member.freePassCount || 0;
   document.getElementById('edit-pass-expiry-input').value = member.monthlyPassExpiry || "";
@@ -611,7 +609,6 @@ window.openMemberProfile = function(memberName) {
   modal.classList.add('active');
 };
 
-// 운영자 모달 전용 헬퍼 함수
 window.setExpiryDays = function(days) {
   const expiryInput = document.getElementById('edit-pass-expiry-input');
   const now = new Date();
@@ -640,7 +637,6 @@ function handleEditMemberSubmit(e) {
   member.intro = document.getElementById('edit-member-intro-chk').checked ? 'O' : 'X';
   member.chat = document.getElementById('edit-member-chat-chk').checked ? 'O' : 'X';
 
-  // 패스 데이터 저장
   member.pass5Count = parseInt(document.getElementById('edit-pass-5-input').value) || 0;
   member.freePassCount = parseInt(document.getElementById('edit-pass-free-input').value) || 0;
   member.monthlyPassExpiry = document.getElementById('edit-pass-expiry-input').value;
@@ -709,7 +705,7 @@ function renderMyProfileTab() {
     </div>
   `;
 
-  // [신규] 개인 보유 패스 잔량 렌더링
+  // 개인 보유 패스 잔량 렌더링
   const passCard = document.getElementById('my-pass-stock-card');
   const passRoot = document.getElementById('my-pass-stock-list');
   if (passCard && passRoot) {
@@ -745,35 +741,35 @@ function renderMyProfileTab() {
     chartCard.style.display = 'block';
     chartRoot.innerHTML = `
       <div class="chart-y-axis">
-        <span>16</span>
-        <span>12</span>
         <span>8</span>
+        <span>6</span>
         <span>4</span>
+        <span>2</span>
         <span>0</span>
       </div>
       <div class="chart-bars-wrapper">
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[0]};" data-val="${me.monthly[0]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[0] * 1.6};" data-val="${me.monthly[0]}"></div>
           <span class="chart-bar-label">2월</span>
         </div>
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[1]};" data-val="${me.monthly[1]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[1] * 1.6};" data-val="${me.monthly[1]}"></div>
           <span class="chart-bar-label">3월</span>
         </div>
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[2]};" data-val="${me.monthly[2]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[2] * 1.6};" data-val="${me.monthly[2]}"></div>
           <span class="chart-bar-label">4월</span>
         </div>
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[3]};" data-val="${me.monthly[3]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[3] * 1.6};" data-val="${me.monthly[3]}"></div>
           <span class="chart-bar-label">5월</span>
         </div>
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[4]};" data-val="${me.monthly[4]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[4] * 1.6};" data-val="${me.monthly[4]}"></div>
           <span class="chart-bar-label">6월</span>
         </div>
         <div class="chart-bar-item">
-          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[5]};" data-val="${me.monthly[5]}"></div>
+          <div class="chart-bar-fill" style="--bar-val: ${me.monthly[5] * 1.6};" data-val="${me.monthly[5]}"></div>
           <span class="chart-bar-label">7월</span>
         </div>
       </div>
@@ -788,6 +784,7 @@ function renderMyProfileTab() {
     historyCard.style.display = 'block';
     historyTotal.textContent = `${me.count}회`;
 
+    // 요청하신 실데이터 월별 매핑 (26년 7월 ~ 25년 6월까지의 역순 나열)
     const monthLabels = [
       "26년 7월", "26년 6월", "26년 5월", "26년 4월", "26년 3월", "26년 2월", 
       "26년 1월", "25년 12월", "25년 11월", "25년 10월", "25년 9월", "25년 8월", "25년 7월", "25년 6월"
