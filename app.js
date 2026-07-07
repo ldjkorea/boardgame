@@ -162,14 +162,14 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의
+// 회원 명부 데이터 정의 (상생권, 무료증정권, 정기권 세션 필드 추가)
 const DEFAULT_MEMBERS = [
-  { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7] },
-  { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 95, count: 155, date: "25.05.19", intro: "O", chat: "O", monthly: [10, 13, 15, 12, 14, 8], allHistory: [8, 14, 12, 15, 13, 10, 11, 15, 14, 14, 11, 9, 5, 8] },
-  { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6] },
-  { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4] },
-  { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4] },
-  { name: "정클루", pw: "1111", role: "⭐ 우수계원", rate: 40, count: 56, date: "25.10.11", intro: "O", chat: "X", monthly: [3, 4, 6, 4, 5, 1], allHistory: [1, 5, 4, 6, 4, 3, 3, 5, 5, 5, 4, 4, 3, 4] }
+  { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7], pass5Count: 3, freePassCount: 1, monthlyPassExpiry: "2026-08-31" },
+  { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 95, count: 155, date: "25.05.19", intro: "O", chat: "O", monthly: [10, 13, 15, 12, 14, 8], allHistory: [8, 14, 12, 15, 13, 10, 11, 15, 14, 14, 11, 9, 5, 8], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4], pass5Count: 0, freePassCount: 2, monthlyPassExpiry: "" },
+  { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "정클루", pw: "1111", role: "⭐ 우수계원", rate: 40, count: 56, date: "25.10.11", intro: "O", chat: "X", monthly: [3, 4, 6, 4, 5, 1], allHistory: [1, 5, 4, 6, 4, 3, 3, 5, 5, 5, 4, 4, 3, 4], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" }
 ];
 
 let state = {
@@ -180,8 +180,7 @@ let state = {
   activeTab: "home"
 };
 
-// [강제 초기화 보강] 로컬스토리지 내에 '이동준' 정보가 정상 식별되지 않으면 
-// 로컬 스토리지를 전면 비우고, 강제로 DEFAULT 명단을 재조정 탑재합니다.
+// 강제 캐시 초기화 및 멤버십 속성(pass5Count, freePassCount, monthlyPassExpiry) 마이그레이션 적용
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
   let needReset = false;
@@ -189,9 +188,11 @@ function initForceSync() {
   if (cachedMembers) {
     try {
       const parsed = JSON.parse(cachedMembers);
-      // '이동준' 데이터가 아예 없는 구형 캐시의 경우 리셋 대상
       const hasDongjun = parsed.some(m => m.name === "이동준");
-      if (!hasDongjun) {
+      // 신규 필드(pass5Count)가 누락된 구버전 캐시의 경우 리셋 단행
+      const hasNewFields = parsed.length > 0 && parsed[0].pass5Count !== undefined;
+      
+      if (!hasDongjun || !hasNewFields) {
         needReset = true;
       }
     } catch(e) {
@@ -202,8 +203,8 @@ function initForceSync() {
   }
 
   if (needReset) {
-    console.log("이동준 마스터 계정 강제 동기화 리셋을 단행합니다.");
-    localStorage.clear(); // 기존 로컬 캐시를 전면 청소하여 꼬임을 원천 차단
+    console.log("새로운 패스 정밀 데이터 적용을 위해 로컬 캐시를 초기화합니다.");
+    localStorage.clear();
   }
 }
 
@@ -253,7 +254,6 @@ function handleLoginSubmit(e) {
   const name = document.getElementById('login-name').value.trim();
   const pw = document.getElementById('login-password').value.trim();
 
-  // 안전 장치: 런타임에 메모리 state.members가 빌 경우 비상 대입
   if (state.members.length === 0) {
     state.members = [...DEFAULT_MEMBERS];
   }
@@ -298,7 +298,10 @@ function handleRegisterSubmit(e) {
     intro: "X",
     chat: "X",
     monthly: [0, 0, 0, 0, 0, 0],
-    allHistory: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    allHistory: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    pass5Count: 0,
+    freePassCount: 0,
+    monthlyPassExpiry: ""
   };
 
   state.members.push(newMember);
@@ -472,6 +475,7 @@ function renderHomePass() {
   }
 }
 
+// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행
 window.handlePassAttendance = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -486,14 +490,46 @@ window.handlePassAttendance = function(eventId) {
     }
     
     const myProfile = state.members.find(m => m.name === state.currentUser);
+    let deductionMessage = "출석이 완료되었습니다!";
+
     if (myProfile) {
       myProfile.count += 1;
       myProfile.rate = Math.min(100, Math.round(myProfile.rate + 1));
+
+      // [자동 차감 로직 실행]
+      // 1순위: 대동결의권 (월 정기권 유효성 검사)
+      let hasValidMonthly = false;
+      if (myProfile.monthlyPassExpiry) {
+        const expiryDate = new Date(myProfile.monthlyPassExpiry);
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        if (expiryDate >= today) {
+          hasValidMonthly = true;
+        }
+      }
+
+      if (hasValidMonthly) {
+        deductionMessage = `결의권 프리패스로 출석 완료! (만료: ${myProfile.monthlyPassExpiry}) 👑`;
+      } 
+      // 2순위: 상생권 5회차 잔여 차감
+      else if (myProfile.pass5Count && myProfile.pass5Count > 0) {
+        myProfile.pass5Count -= 1;
+        deductionMessage = `상생권 1회 차감 완료! (남은 횟수: ${myProfile.pass5Count}회) 🎟️`;
+      } 
+      // 3순위: 이벤트 무료증정권 잔여 차감
+      else if (myProfile.freePassCount && myProfile.freePassCount > 0) {
+        myProfile.freePassCount -= 1;
+        deductionMessage = `이벤트 무료증정권 1회 차감 완료! (남은 횟수: ${myProfile.freePassCount}회) 🎁`;
+      } 
+      // 4순위: 차감할 패스 없음
+      else {
+        deductionMessage = `보유 패스 없음: 현장 결제 대상입니다. (평일 9k / 주말 15k won) 💳`;
+      }
     }
 
     saveData();
     renderApp();
-    showToast("출석 인증 완료! 오늘도 즐거운 보드게임 하세요! 🎉");
+    showToast(deductionMessage);
   } else {
     showToast("출석 코드가 틀렸습니다. 다시 확인해 주세요.", false);
     inputs.forEach(input => input.value = '');
@@ -522,6 +558,24 @@ window.openMemberProfile = function(memberName) {
     </div>
 
     <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+      <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 8px;">보유 패스 내역</span>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 6px;">
+        <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">상생권 잔여</span>
+          <strong style="color: var(--accent-green);">${member.pass5Count || 0}회</strong>
+        </div>
+        <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">무료증정권</span>
+          <strong style="color: var(--secondary-color);">${member.freePassCount || 0}회</strong>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 11px; display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">대동결의권 (월 정기권) 만료 예정일</span>
+        <strong>${member.monthlyPassExpiry ? member.monthlyPassExpiry : "미사용"}</strong>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
       <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 8px;">기본 정보</span>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px;">
         <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">이름</span><span>${member.name}</span></div>
@@ -542,49 +596,6 @@ window.openMemberProfile = function(memberName) {
         </div>
       </div>
     </div>
-
-    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
-      <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block;">최근 참석율 추이 (최근 6개월)</span>
-      
-      <div class="chart-container" style="height: 140px; margin-top: 8px;">
-        <div class="chart-y-axis">
-          <span>16</span>
-          <span>8</span>
-          <span>0</span>
-        </div>
-        <div class="chart-bars-wrapper">
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[0]};" data-val="${member.monthly[0]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">2월</span>
-          </div>
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[1]};" data-val="${member.monthly[1]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">3월</span>
-          </div>
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[2]};" data-val="${member.monthly[2]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">4월</span>
-          </div>
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[3]};" data-val="${member.monthly[3]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">5월</span>
-          </div>
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[4]};" data-val="${member.monthly[4]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">6월</span>
-          </div>
-          <div class="chart-bar-item">
-            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[5]};" data-val="${member.monthly[5]}"></div>
-            <span class="chart-bar-label" style="font-size: 9px;">7월</span>
-          </div>
-        </div>
-      </div>
-      
-      <div style="display: flex; justify-content: space-between; font-size: 12px; margin-top: 10px; padding: 6px 12px; background: rgba(255,255,255,0.02); border-radius: 8px;">
-        <span style="color: var(--text-muted);">누적 참석 총합</span>
-        <strong style="color: var(--secondary-color);">${member.count}회</strong>
-      </div>
-    </div>
   `;
 
   document.getElementById('edit-member-target-name').value = member.name;
@@ -592,7 +603,31 @@ window.openMemberProfile = function(memberName) {
   document.getElementById('edit-member-intro-chk').checked = (member.intro === 'O');
   document.getElementById('edit-member-chat-chk').checked = (member.chat === 'O');
 
+  // 패스 데이터 바인딩
+  document.getElementById('edit-pass-5-input').value = member.pass5Count || 0;
+  document.getElementById('edit-pass-free-input').value = member.freePassCount || 0;
+  document.getElementById('edit-pass-expiry-input').value = member.monthlyPassExpiry || "";
+
   modal.classList.add('active');
+};
+
+// 운영자 모달 전용 헬퍼 함수
+window.setExpiryDays = function(days) {
+  const expiryInput = document.getElementById('edit-pass-expiry-input');
+  const now = new Date();
+  now.setDate(now.getDate() + days);
+
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+
+  expiryInput.value = `${yyyy}-${mm}-${dd}`;
+  showToast(`${days}일 후인 ${expiryInput.value}로 지정되었습니다.`);
+};
+
+window.clearExpiry = function() {
+  document.getElementById('edit-pass-expiry-input').value = "";
+  showToast("월간 정기권 기한이 제거되었습니다.");
 };
 
 function handleEditMemberSubmit(e) {
@@ -605,10 +640,15 @@ function handleEditMemberSubmit(e) {
   member.intro = document.getElementById('edit-member-intro-chk').checked ? 'O' : 'X';
   member.chat = document.getElementById('edit-member-chat-chk').checked ? 'O' : 'X';
 
+  // 패스 데이터 저장
+  member.pass5Count = parseInt(document.getElementById('edit-pass-5-input').value) || 0;
+  member.freePassCount = parseInt(document.getElementById('edit-pass-free-input').value) || 0;
+  member.monthlyPassExpiry = document.getElementById('edit-pass-expiry-input').value;
+
   saveData();
   document.getElementById('member-profile-modal').classList.remove('active');
   renderApp();
-  showToast(`${targetName} 회원의 등급 및 인증 정보가 변경되었습니다.`);
+  showToast(`${targetName} 회원의 멤버십 및 패스 정보가 수정되었습니다.`);
 }
 
 function closeMemberProfile() {
@@ -668,6 +708,36 @@ function renderMyProfileTab() {
       </div>
     </div>
   `;
+
+  // [신규] 개인 보유 패스 잔량 렌더링
+  const passCard = document.getElementById('my-pass-stock-card');
+  const passRoot = document.getElementById('my-pass-stock-list');
+  if (passCard && passRoot) {
+    passCard.style.display = 'block';
+
+    let expiryText = "미사용 (만료 또는 미구매)";
+    if (me.monthlyPassExpiry) {
+      const exp = new Date(me.monthlyPassExpiry);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      expiryText = exp >= today ? `${me.monthlyPassExpiry} (이용 가능 👑)` : `${me.monthlyPassExpiry} (기간 만료 ❌)`;
+    }
+
+    passRoot.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
+        <span style="color: var(--text-muted);">아지트 상생 패스 (5회권)</span>
+        <strong style="color: var(--accent-green); font-size: 14px;">${me.pass5Count || 0}회 남음</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
+        <span style="color: var(--text-muted);">이벤트 무료증정 패스</span>
+        <strong style="color: var(--secondary-color); font-size: 14px;">${me.freePassCount || 0}회 남음</strong>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
+        <span style="color: var(--text-muted);">월간 대동결의 프리패스 만료일</span>
+        <strong style="font-size: 12px; color: var(--primary-color);">${expiryText}</strong>
+      </div>
+    `;
+  }
 
   const chartCard = document.getElementById('my-chart-card');
   const chartRoot = document.getElementById('my-chart-container-root');
@@ -912,7 +982,7 @@ function renderApp() {
               </div>
               <div style="text-align: right; display: flex; flex-direction: column; gap: 2px;">
                 <span class="rank-rate">${member.rate}%</span>
-                <span style="font-size: 10px; color: var(--text-muted);">누적 ${member.count}회</span>
+                <span style="font-size: 10px; color: var(--text-muted);">상생: ${member.pass5Count || 0}회 / 무료: ${member.freePassCount || 0}회</span>
               </div>
             </div>
           `;
@@ -1040,7 +1110,7 @@ function initEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initForceSync(); // 로컬 메모리를 즉시 리셋하여 계정 정보를 무조건 바인딩
+  initForceSync();
   loadData();
   initTabs();
   initRoleToggle();
