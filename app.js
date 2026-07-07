@@ -587,6 +587,7 @@ window.handlePassAttendance = function(eventId) {
   }
 };
 
+// [운영진 전용] 관리 모달 활성화
 window.openMemberProfile = function(memberName) {
   const member = state.members.find(m => m.name === memberName);
   if (!member) return;
@@ -632,20 +633,6 @@ window.openMemberProfile = function(memberName) {
         <div style="display: flex; justify-content: space-between;"><span style="color: var(--text-muted);">가입일</span><span>${member.date}</span></div>
       </div>
     </div>
-
-    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
-      <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 8px;">활동 인증 여부</span>
-      <div style="display: flex; gap: 12px; font-size: 11px;">
-        <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 8px; text-align: center; border-radius: 8px; border: 1px solid var(--border-color);">
-          <div style="color: var(--text-muted); margin-bottom: 2px;">가입인사</div>
-          <strong style="color: var(--accent-green); font-size: 13px;">${member.intro}</strong>
-        </div>
-        <div style="flex: 1; background: rgba(255,255,255,0.02); padding: 8px; text-align: center; border-radius: 8px; border: 1px solid var(--border-color);">
-          <div style="color: var(--text-muted); margin-bottom: 2px;">오픈카톡</div>
-          <strong style="${member.chat === 'O' ? 'color: var(--accent-green);' : 'color: var(--accent-red);'} font-size: 13px;">${member.chat}</strong>
-        </div>
-      </div>
-    </div>
   `;
 
   document.getElementById('edit-member-target-name').value = member.name;
@@ -656,6 +643,123 @@ window.openMemberProfile = function(memberName) {
   document.getElementById('edit-pass-5-input').value = member.pass5Count || 0;
   document.getElementById('edit-pass-free-input').value = member.freePassCount || 0;
   document.getElementById('edit-pass-expiry-input').value = member.monthlyPassExpiry || "";
+
+  modal.classList.add('active');
+};
+
+// [신규] 계원 상호간 프로필 세부 정보 및 그래프 조회기 모달
+window.openMemberProfileView = function(memberName) {
+  const member = state.members.find(m => m.name === memberName);
+  if (!member) return;
+
+  const modal = document.getElementById('member-view-modal');
+  const modalBody = document.getElementById('member-view-modal-body');
+
+  let expiryText = "미사용";
+  if (member.monthlyPassExpiry) {
+    const exp = new Date(member.monthlyPassExpiry);
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    expiryText = exp >= today ? `${member.monthlyPassExpiry} (이용가능 👑)` : "기간 만료";
+  }
+
+  // 월별 내역 리스트 마크업
+  const monthLabels = [
+    "26년 7월", "26년 6월", "26년 5월", "26년 4월", "26년 3월", "26년 2월", 
+    "26년 1월", "25년 12월", "25년 11월", "25년 10월"
+  ];
+  const historyListHTML = monthLabels.map((label, idx) => {
+    const countVal = member.allHistory[idx] !== undefined ? member.allHistory[idx] : 0;
+    return `
+      <div class="history-row" style="padding: 8px 12px; font-size: 12px;">
+        <span>${label}</span>
+        <strong style="color: var(--primary-color);">${countVal}회</strong>
+      </div>
+    `;
+  }).join('');
+
+  modalBody.innerHTML = `
+    <!-- 인적 정보 -->
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="avatar" style="width: 56px; height: 56px; font-size: 18px; background: var(--primary-glow); margin: 0; font-weight: 800;">
+        ${member.name.slice(-2)}
+      </div>
+      <div>
+        <h4 style="font-size: 18px; font-weight: 800;">${member.name} 계원</h4>
+        <span style="font-size: 11px; color: var(--primary-color); font-weight: 700; background: rgba(167, 139, 250, 0.1); padding: 2px 8px; border-radius: 99px; border: 1px solid rgba(167, 139, 250, 0.2);">
+          ${member.role}
+        </span>
+      </div>
+    </div>
+
+    <!-- 보유 스펙 패스 내역 -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+      <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 8px;">보유 패스 내역</span>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 6px;">
+        <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">5일 패스 (WEEKLY)</span>
+          <strong style="color: var(--accent-green);">${member.pass5Count || 0}회</strong>
+        </div>
+        <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">무료증정권</span>
+          <strong style="color: var(--secondary-color);">${member.freePassCount || 0}회</strong>
+        </div>
+      </div>
+      <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 11px; display: flex; justify-content: space-between;">
+        <span style="color: var(--text-muted);">무제한 입장권 만료일</span>
+        <strong>${expiryText}</strong>
+      </div>
+    </div>
+
+    <!-- 최근 6개월 추이 그래프 -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+      <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 2px;">참석율 그래프</span>
+      <div class="chart-container" style="height: 150px;">
+        <div class="chart-y-axis">
+          <span>8</span>
+          <span>4</span>
+          <span>0</span>
+        </div>
+        <div class="chart-bars-wrapper">
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[0] * 1.6}; width: 14px;" data-val="${member.monthly[0]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">2월</span>
+          </div>
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[1] * 1.6}; width: 14px;" data-val="${member.monthly[1]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">3월</span>
+          </div>
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[2] * 1.6}; width: 14px;" data-val="${member.monthly[2]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">4월</span>
+          </div>
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[3] * 1.6}; width: 14px;" data-val="${member.monthly[3]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">5월</span>
+          </div>
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[4] * 1.6}; width: 14px;" data-val="${member.monthly[4]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">6월</span>
+          </div>
+          <div class="chart-bar-item">
+            <div class="chart-bar-fill" style="--bar-val: ${member.monthly[5] * 1.6}; width: 14px;" data-val="${member.monthly[5]}"></div>
+            <span style="font-size: 9px; color: var(--text-muted);">7월</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 월별 상세 히스토리 내역 -->
+    <div style="border-top: 1px solid var(--border-color); padding-top: 14px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 13px; font-weight: 700; color: var(--primary-color);">월별 참석 횟수</span>
+        <span style="font-size: 11px;">누적합: <strong style="color: var(--secondary-color);">${member.count}회</strong></span>
+      </div>
+      <div style="max-height: 120px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+        ${historyListHTML}
+      </div>
+    </div>
+  `;
 
   modal.classList.add('active');
 };
@@ -1096,19 +1200,12 @@ function renderApp() {
         const mainCat = evt.mainCategory || "보드게임";
         const subCat = evt.subCategory || "자유";
         const emoji = SUB_CAT_EMOJI[subCat] || "♟️";
-
-        // 인원 채우기 비율 및 게이지 계산
         const fillPercent = Math.min(100, Math.round((evt.participants.length / evt.limit) * 100));
 
         return `
           <div class="glass-card event-card">
             <div class="event-card-header">
-              <!-- 좌측 네온 서클 엠블럼 -->
-              <div class="event-emblem-wrapper">
-                ${emoji}
-              </div>
-
-              <!-- 우측 텍스트 정보 -->
+              <div class="event-emblem-wrapper">${emoji}</div>
               <div class="event-card-details">
                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
                   <span style="font-size: 9px; background: rgba(167, 139, 250, 0.12); color: #c4b5fd; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(167, 139, 250, 0.2); font-weight: 700;">
@@ -1121,7 +1218,6 @@ function renderApp() {
                 <h4 class="event-title">${evt.title}</h4>
                 <span class="section-subtitle">${dateFormatted}</span>
               </div>
-              
               <div style="display: flex; align-items: center; gap: 8px;">
                 ${state.isAdmin ? `<button class="role-badge" style="border-color: rgba(255, 255, 255, 0.15); color: #fff;" onclick="editEvent('${evt.id}')">수정</button>` : ''}
                 <span class="event-badge ${statusClass}">${statusText}</span>
@@ -1133,8 +1229,6 @@ function renderApp() {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
                 <span>${evt.location}</span>
               </div>
-              
-              <!-- [고도화] 정밀 입체 인원 게이지 바 추가 -->
               <div class="event-gauge-container">
                 <div class="event-gauge-header">
                   <span>모집 정원 현황</span>
@@ -1174,17 +1268,21 @@ function renderApp() {
     }
   }
 
+  // [중요: 명예의 전당 랭킹 행 클릭 시 타 계원 프로필 조회 모달 바인딩]
   const rankContainer = document.getElementById('rank-list-container');
   if (rankContainer) {
     const sortedMembers = [...state.members].sort((a, b) => b.rate - a.rate);
     rankContainer.innerHTML = sortedMembers.map((member, idx) => {
       return `
-        <div class="rank-item">
+        <div class="rank-item" style="cursor: pointer; transition: all 0.2s;" onclick="openMemberProfileView('${member.name}')">
           <div class="rank-left">
             <span class="rank-number">${idx + 1}</span>
-            <span class="rank-name">${member.name} ${member.name === state.currentUser ? '(나)' : ''}</span>
+            <span class="rank-name">${member.name} ${member.name === state.currentUser ? '(나) 👤' : ''}</span>
           </div>
-          <span class="rank-rate">${member.rate}%</span>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 11px; color: var(--text-muted);">누적 ${member.count}회</span>
+            <span class="rank-rate">${member.rate}%</span>
+          </div>
         </div>
       `;
     }).join('');
@@ -1194,11 +1292,14 @@ function renderApp() {
     renderMyProfileTab();
   }
 
+  // [블로그식 구분선 및 운영진 관리 패널 권한 제어]
+  const blogDivider = document.getElementById('blog-divider');
   const membersWrapper = document.getElementById('members-list-wrapper');
   const memberContainer = document.getElementById('member-list-container');
   
-  if (membersWrapper) {
+  if (blogDivider && membersWrapper) {
     if (state.isAdmin) {
+      blogDivider.style.display = 'block';
       membersWrapper.style.display = 'block';
       if (memberContainer) {
         const otherMembers = state.members.filter(m => m.name !== state.currentUser);
@@ -1221,6 +1322,7 @@ function renderApp() {
         }).join('');
       }
     } else {
+      blogDivider.style.display = 'none';
       membersWrapper.style.display = 'none';
     }
   }
@@ -1328,6 +1430,11 @@ function initEventListeners() {
   document.getElementById('btn-close-member-modal').addEventListener('click', closeMember);
   document.getElementById('btn-close-member-modal-confirm').addEventListener('click', closeMember);
 
+  // [신규] 타 회원 상세 정보 모달 닫기 바인딩
+  const closeViewMember = () => document.getElementById('member-view-modal').classList.remove('active');
+  document.getElementById('btn-close-view-modal').addEventListener('click', closeViewMember);
+  document.getElementById('btn-close-view-modal-confirm').addEventListener('click', closeViewMember);
+
   const closeParticipants = () => document.getElementById('event-participants-modal').classList.remove('active');
   document.getElementById('btn-close-participants-modal').addEventListener('click', closeParticipants);
   document.getElementById('btn-cancel-participants-modal').addEventListener('click', closeParticipants);
@@ -1346,10 +1453,12 @@ function initEventListeners() {
     const createModal = document.getElementById('create-event-modal');
     const editModal = document.getElementById('edit-event-modal');
     const memberModal = document.getElementById('member-profile-modal');
+    const viewModal = document.getElementById('member-view-modal');
     const participantsModal = document.getElementById('event-participants-modal');
     if (e.target === createModal) closeCreate();
     if (e.target === editModal) closeEdit();
     if (e.target === memberModal) closeMember();
+    if (e.target === viewModal) closeViewMember();
     if (e.target === participantsModal) closeParticipants();
   });
 }
