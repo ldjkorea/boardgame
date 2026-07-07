@@ -235,6 +235,52 @@ function handleLoginSubmit(e) {
   }
 }
 
+// [신규] 회원가입 액션 핸들러
+function handleRegisterSubmit(e) {
+  e.preventDefault();
+  const name = document.getElementById('reg-name').value.trim();
+  const pw = document.getElementById('reg-password').value.trim();
+
+  if (state.members.some(m => m.name === name)) {
+    showToast("이미 동호회에 등록된 동일한 이름이 존재합니다.", false);
+    return;
+  }
+
+  // 오늘 날짜 계산 (예: 26.07.07 포맷)
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2);
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const date = String(now.getDate()).padStart(2, '0');
+  const formattedDate = `${year}.${month}.${date}`;
+
+  const newMember = {
+    name: name,
+    pw: pw,
+    role: "일반 회원",
+    rate: 0,
+    count: 0,
+    date: formattedDate,
+    intro: "X",
+    chat: "X",
+    monthly: [0, 0, 0, 0, 0, 0],
+    allHistory: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+  };
+
+  state.members.push(newMember);
+  saveData();
+
+  // 가입 즉시 자동 로그인
+  sessionStorage.setItem('boardgye_session_user', name);
+  showToast("보드계모임 가입을 환영합니다! 🎉");
+  
+  // 가입 폼 초기화 및 뷰 전환
+  document.getElementById('register-form').reset();
+  document.getElementById('card-register-view').style.display = 'none';
+  document.getElementById('card-login-view').style.display = 'block';
+
+  checkLoginSession();
+}
+
 function handleLogout() {
   sessionStorage.removeItem('boardgye_session_user');
   state.currentUser = null;
@@ -508,8 +554,31 @@ window.openMemberProfile = function(memberName) {
     </div>
   `;
 
+  // [신규] 수정 폼에 현재 선택된 멤버 데이터 미리 세팅
+  document.getElementById('edit-member-target-name').value = member.name;
+  document.getElementById('edit-member-role-select').value = member.role;
+  document.getElementById('edit-member-intro-chk').checked = (member.intro === 'O');
+  document.getElementById('edit-member-chat-chk').checked = (member.chat === 'O');
+
   modal.classList.add('active');
 };
+
+// [신규] 운영진용 멤버 정보 수정 제출 핸들러
+function handleEditMemberSubmit(e) {
+  e.preventDefault();
+  const targetName = document.getElementById('edit-member-target-name').value;
+  const member = state.members.find(m => m.name === targetName);
+  if (!member) return;
+
+  member.role = document.getElementById('edit-member-role-select').value;
+  member.intro = document.getElementById('edit-member-intro-chk').checked ? 'O' : 'X';
+  member.chat = document.getElementById('edit-member-chat-chk').checked ? 'O' : 'X';
+
+  saveData();
+  document.getElementById('member-profile-modal').classList.remove('active');
+  renderApp();
+  showToast(`${targetName} 회원의 권한 및 정보가 저장되었습니다.`);
+}
 
 function closeMemberProfile() {
   document.getElementById('member-profile-modal').classList.remove('active');
@@ -892,7 +961,24 @@ function initForceSync() {
 }
 
 function initEventListeners() {
+  // 로그인 및 회원가입 전환 토글 리스너
+  const loginCard = document.getElementById('card-login-view');
+  const regCard = document.getElementById('card-register-view');
+
+  document.getElementById('go-to-register').addEventListener('click', () => {
+    loginCard.style.display = 'none';
+    regCard.style.display = 'block';
+  });
+
+  document.getElementById('go-to-login').addEventListener('click', () => {
+    regCard.style.display = 'none';
+    loginCard.style.display = 'block';
+  });
+
   document.getElementById('login-form').addEventListener('submit', handleLoginSubmit);
+  document.getElementById('register-form').addEventListener('submit', handleRegisterSubmit);
+  document.getElementById('edit-member-role-form').addEventListener('submit', handleEditMemberSubmit);
+
   document.getElementById('btn-sidebar-logout').addEventListener('click', handleLogout);
   document.getElementById('btn-mobile-logout').addEventListener('click', handleLogout);
 
@@ -910,8 +996,9 @@ function initEventListeners() {
   document.getElementById('btn-cancel-edit').addEventListener('click', closeEdit);
   document.getElementById('edit-event-form').addEventListener('submit', handleEditEventSubmit);
 
-  document.getElementById('btn-close-member-modal').addEventListener('click', closeMemberProfile);
-  document.getElementById('btn-close-member-modal-confirm').addEventListener('click', closeMemberProfile);
+  const closeMember = () => document.getElementById('member-profile-modal').classList.remove('active');
+  document.getElementById('btn-close-member-modal').addEventListener('click', closeMember);
+  document.getElementById('btn-close-member-modal-confirm').addEventListener('click', closeMember);
 
   document.getElementById('btn-reset-data').addEventListener('click', () => {
     localStorage.removeItem('boardgye_events');
@@ -928,7 +1015,7 @@ function initEventListeners() {
     const memberModal = document.getElementById('member-profile-modal');
     if (e.target === createModal) closeCreate();
     if (e.target === editModal) closeEdit();
-    if (e.target === memberModal) closeMemberProfile();
+    if (e.target === memberModal) closeMember();
   });
 }
 
