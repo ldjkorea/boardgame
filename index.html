@@ -17,15 +17,17 @@
 </head>
 <body>
 
-  <!-- 로그인 섹션 (비인증 상태 시 상시 표출) -->
+  <!-- 로그인 & 회원가입 통합 섹션 -->
   <div id="login-container" class="login-overlay">
-    <div class="login-card">
+    
+    <!-- A. 로그인 카드 -->
+    <div class="login-card" id="card-login-view">
       <div style="text-align: center; margin-bottom: 24px;">
         <div class="brand-logo" style="justify-content: center; font-size: 32px; font-weight: 900; margin-bottom: 8px;">
           <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #c4b5fd;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           보드계(契)모임
         </div>
-        <p style="font-size: 13px; color: var(--text-muted);">보드게임 동호회 멤버 로그인</p>
+        <p style="font-size: 13px; color: var(--text-muted);">보드게임 동호회 로그인</p>
       </div>
 
       <form id="login-form">
@@ -42,10 +44,47 @@
           로그인 및 접속하기
         </button>
       </form>
+
+      <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+        <span style="color: var(--text-muted);">아직 동호회 멤버가 아니신가요?</span>
+        <span id="go-to-register" style="color: var(--primary-color); font-weight: 700; margin-left: 6px; cursor: pointer; text-decoration: underline;">간편 가입하기</span>
+      </div>
     </div>
+
+    <!-- B. 회원가입 카드 (최초 숨김) -->
+    <div class="login-card" id="card-register-view" style="display: none;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div class="brand-logo" style="justify-content: center; font-size: 32px; font-weight: 900; margin-bottom: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #c4b5fd;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          보드계(契)모임
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted);">신규 멤버 가입하기</p>
+      </div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="reg-name">본인 이름 (실명 권장)</label>
+          <input type="text" id="reg-name" class="form-control" placeholder="예: 홍길동" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-password">사용할 비밀번호</label>
+          <input type="password" id="reg-password" class="form-control" placeholder="비밀번호 설정" required>
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 14px; background: var(--primary-glow);">
+          동호회 가입 완료
+        </button>
+      </form>
+
+      <div style="text-align: center; margin-top: 20px; font-size: 12px;">
+        <span style="color: var(--text-muted);">이미 계정이 있으신가요?</span>
+        <span id="go-to-login" style="color: var(--primary-color); font-weight: 700; margin-left: 6px; cursor: pointer; text-decoration: underline;">로그인하러 가기</span>
+      </div>
+    </div>
+
   </div>
 
-  <!-- 메인 앱 뷰포트 (로그인 성공 전에는 hidden 상태로 로딩) -->
+  <!-- 메인 앱 뷰포트 -->
   <div class="app-wrapper" id="main-app-wrapper" style="display: none;">
     
     <!-- 1. 데스크톱용 왼쪽 사이드바 -->
@@ -77,7 +116,6 @@
         </div>
       </nav>
 
-      <!-- 로그아웃용 하단 버튼 -->
       <div style="display: flex; flex-direction: column; gap: 8px;">
         <button class="role-badge" id="btn-sidebar-logout" style="text-align: center; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">
           로그아웃
@@ -305,11 +343,11 @@
       </div>
     </div>
 
-    <!-- 모달: 회원 상세 프로필 열람 팝업 (운영진 모드 전용) -->
+    <!-- 모달: 회원 상세 프로필 열람 및 [수정] 팝업 (운영진 모드 전용) -->
     <div id="member-profile-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 460px;">
         <div class="modal-header">
-          <h3 class="modal-title">멤버 상세 프로필</h3>
+          <h3 class="modal-title">멤버 프로필 및 권한 관리</h3>
           <button class="modal-close" id="btn-close-member-modal">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -317,9 +355,39 @@
         
         <div id="member-modal-body" style="display: flex; flex-direction: column; gap: 18px;"></div>
         
-        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;" id="btn-close-member-modal-confirm">닫기</button>
-        </div>
+        <!-- [개선] 모임장이 다른 회원의 정보와 권한을 즉시 변경할 수 있는 인라인 편집 폼 영역 -->
+        <form id="edit-member-role-form" style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 4px; display: flex; flex-direction: column; gap: 12px;">
+          <input type="hidden" id="edit-member-target-name">
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="edit-member-role-select">등급/역할 변경</label>
+              <select id="edit-member-role-select" class="form-control" style="background: #181a21; padding: 8px 12px; font-size: 13px;">
+                <option value="일반 회원">일반 회원</option>
+                <option value="실버 다이스">실버 다이스</option>
+                <option value="골드 다이스">골드 다이스</option>
+                <option value="🔴 모임장">🔴 모임장</option>
+              </select>
+            </div>
+            
+            <div class="form-group" style="margin: 0;">
+              <label>활동 인증 여부</label>
+              <div style="display: flex; gap: 8px; margin-top: 4px;">
+                <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; color: var(--text-main);">
+                  <input type="checkbox" id="edit-member-intro-chk" style="width: 14px; height: 14px;"> 가입인사
+                </label>
+                <label style="display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer; color: var(--text-main);">
+                  <input type="checkbox" id="edit-member-chat-chk" style="width: 14px; height: 14px;"> 카톡접속
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 8px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1; padding: 10px;" id="btn-close-member-modal-confirm">취소</button>
+            <button type="submit" class="btn" style="flex: 1; padding: 10px;">변경사항 저장</button>
+          </div>
+        </form>
       </div>
     </div>
 
@@ -327,7 +395,6 @@
     <div id="toast" class="toast">출석체크 완료! 🎉</div>
   </div>
 
-  <!-- [PWA 추가] 브라우저 서비스 워커 등록 및 구동 스크립트 -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
