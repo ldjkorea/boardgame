@@ -6,7 +6,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-02T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["박전략", "이루미", "최협력", "정클루", "길시온"],
+    participants: ["박전략", "이루미", "최협력", "정클루", "길시온", "이동준"],
     status: "completed",
     code: "1002"
   },
@@ -16,7 +16,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-03T20:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["이루미", "박전략", "최협력", "길시온"],
+    participants: ["이루미", "박전략", "최협력", "길시온", "이동준"],
     status: "completed",
     code: "1003"
   },
@@ -36,7 +36,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-05T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["길시온", "이루미"],
+    participants: ["길시온", "이루미", "이동준"],
     status: "completed",
     code: "1005"
   },
@@ -162,9 +162,10 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의 (지정 등급 체계로 업그레이드)
+// 회원 명부 데이터 정의 (이동준 관리자 계정 직권 추가)
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7] },
+  { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 95, count: 155, date: "25.05.19", intro: "O", chat: "O", monthly: [10, 13, 15, 12, 14, 8], allHistory: [8, 14, 12, 15, 13, 10, 11, 15, 14, 14, 11, 9, 5, 8] },
   { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6] },
   { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4] },
   { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4] },
@@ -189,6 +190,26 @@ function loadData() {
   state.isAdmin = isAdmin ? JSON.parse(isAdmin) : true;
 }
 
+// 명단에 '이동준' 정보가 누락되어 있거나 캐시 구조가 구버전일 경우, 
+// 즉각 캐시를 강제 동기화시켜 항상 로그인되도록 복구해주는 로직
+function initForceSync() {
+  const cachedMembers = localStorage.getItem('boardgye_members');
+  if (cachedMembers) {
+    try {
+      const parsed = JSON.parse(cachedMembers);
+      // '이동준' 회원이 캐시에 누락되어 있을 경우에 한해 강제 초기화
+      const hasDongjun = parsed.some(m => m.name === "이동준");
+      if (!hasDongjun) {
+        console.log("이동준 계정 직권 생성 동기화를 위해 스토리지를 갱신합니다.");
+        localStorage.removeItem('boardgye_members');
+        localStorage.removeItem('boardgye_events');
+      }
+    } catch(e) {
+      localStorage.removeItem('boardgye_members');
+    }
+  }
+}
+
 function saveData() {
   localStorage.setItem('boardgye_events', JSON.stringify(state.events));
   localStorage.setItem('boardgye_members', JSON.stringify(state.members));
@@ -201,7 +222,6 @@ function checkLoginSession() {
     state.currentUser = sessionUser;
     const userProfile = state.members.find(m => m.name === sessionUser);
     if (userProfile) {
-      // 역할명에 관리자, 운영진, 문지기가 들어가는 경우 운영진 모드 스위치 가능
       state.isAdmin = (
         userProfile.role.includes("관리자") || 
         userProfile.role.includes("운영진") || 
@@ -259,7 +279,7 @@ function handleRegisterSubmit(e) {
   const newMember = {
     name: name,
     pw: pw,
-    role: "🌱 일반계원", // 기본 등급 설정
+    role: "🌱 일반계원",
     rate: 0,
     count: 0,
     date: formattedDate,
@@ -361,24 +381,6 @@ function initPassCodeInputEvents() {
       }
     });
   });
-}
-
-// 데이터 강제 등급 리셋 마이그레이션 (구버전의 등급이 남아있으면 새로 매핑)
-function initForceSync() {
-  const cachedMembers = localStorage.getItem('boardgye_members');
-  if (cachedMembers) {
-    try {
-      const parsed = JSON.parse(cachedMembers);
-      // 구형 등급(실버 다이스 등)이 존재할 경우 포맷팅 갱신을 위해 캐시 제거
-      const hasOldRole = parsed.some(m => m.role.includes("다이스") || m.role.includes("일반 회원"));
-      if (hasOldRole) {
-        localStorage.removeItem('boardgye_members');
-        localStorage.removeItem('boardgye_events');
-      }
-    } catch(e) {
-      localStorage.removeItem('boardgye_members');
-    }
-  }
 }
 
 function showToast(message, isSuccess = true) {
@@ -1026,7 +1028,7 @@ function initEventListeners() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  initForceSync();
+  initForceSync(); // '이동준' 계정 유입을 보장하는 캐시 제거 로직
   loadData();
   initTabs();
   initRoleToggle();
