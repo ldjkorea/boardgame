@@ -233,7 +233,7 @@
             </button>
           </div>
 
-          <!-- [신규] 카테고리 대분류 탭 바 & 세부 분류 태그 바 -->
+          <!-- 카테고리 대분류 탭 바 & 세부 분류 태그 바 -->
           <div class="event-filter-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
             <!-- 대분류 탭 -->
             <div class="category-main-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; overflow-x: auto;">
@@ -253,15 +253,15 @@
         <section id="tab-ranking" class="tab-pane">
           <div>
             <span class="section-title">출석 명예의 전당</span>
-            <div class="section-subtitle" style="margin-bottom: 16px;">이번 달 가장 성실한 보드게이머 순위입니다.</div>
+            <div class="section-subtitle" style="margin-bottom: 16px;">이번 달 가장 성실한 보드게이머 순위입니다. (이름 클릭 시 프로필 열람)</div>
             <div id="rank-list-container" class="rank-list"></div>
           </div>
         </section>
 
-        <!-- 탭 4: 프로필 -->
+        <!-- 탭 4: 프로필 (계원 정보 + 구분선 + 운영진 패널 통합 개편) -->
         <section id="tab-profile" class="tab-pane">
           
-          <!-- 내 프로필 카드 -->
+          <!-- [상단 계원용 영역] 내 프로필 카드 -->
           <div id="my-profile-card-container"></div>
 
           <!-- 마이페이지 내 보유 패스 현황 카드 -->
@@ -278,14 +278,6 @@
             <div class="chart-container" id="my-chart-container-root"></div>
           </div>
 
-          <!-- 동호회 멤버 리스트 조회 영역 -->
-          <div id="members-list-wrapper">
-            <div class="section-title" style="margin-top: 10px; margin-bottom: 12px;">
-              <span>동호회 멤버 목록</span>
-            </div>
-            <div id="member-list-container" class="rank-list"></div>
-          </div>
-
           <!-- 전체 월별 참석 현황 리스트 -->
           <div class="glass-card" id="my-history-card" style="display: none; padding-bottom: 12px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;">
@@ -294,6 +286,23 @@
             </div>
             
             <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;" id="my-history-list-root"></div>
+          </div>
+
+          <!-- [신규 추가] 예전 네이버 블로그 스타일 클래식 구분선 -->
+          <div id="blog-divider" style="display: none; position: relative; margin: 32px 0 16px 0; text-align: center;">
+            <hr style="border: none; border-top: 2px dashed rgba(167, 139, 250, 0.25); height: 1px; margin: 0;">
+            <span style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #08090d; padding: 0 16px; font-size: 11px; font-weight: 800; color: var(--primary-color); letter-spacing: 2px; text-transform: uppercase;">
+              🛡️ 운영진 전용 관리 패널 🛡️
+            </span>
+          </div>
+
+          <!-- [하단 운영진 전용 관리 영역] 동호회 멤버 리스트 조회 및 등급 조정 -->
+          <div id="members-list-wrapper" style="display: none;">
+            <div class="section-title" style="margin-top: 10px; margin-bottom: 12px;">
+              <span>동호회 전체 멤버 목록</span>
+              <span class="section-subtitle" style="font-size: 11px; margin: 0;">(이름 클릭 시 회원 패스 수정 및 수동 지급)</span>
+            </div>
+            <div id="member-list-container" class="rank-list"></div>
           </div>
           
           <div style="display: flex; gap: 12px; margin-top: 12px;">
@@ -350,7 +359,6 @@
             <input type="datetime-local" id="event-date-input" class="form-control" required>
           </div>
           
-          <!-- [신규] 카테고리 연동 선택 폼 -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="form-group" style="margin: 0;">
               <label for="event-main-cat">모임 대분류</label>
@@ -363,7 +371,6 @@
             <div class="form-group" style="margin: 0;">
               <label for="event-sub-cat">세부 분류</label>
               <select id="event-sub-cat" class="form-control" style="background: #181a21;">
-                <!-- JS에서 동적 주입 -->
               </select>
             </div>
           </div>
@@ -407,7 +414,6 @@
             <input type="datetime-local" id="edit-date-input" class="form-control" required>
           </div>
 
-          <!-- [신규] 수정 폼 내 카테고리 셀렉트 박스 -->
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
             <div class="form-group" style="margin: 0;">
               <label for="edit-main-cat">모임 대분류</label>
@@ -420,7 +426,6 @@
             <div class="form-group" style="margin: 0;">
               <label for="edit-sub-cat">세부 분류</label>
               <select id="edit-sub-cat" class="form-control" style="background: #181a21;">
-                <!-- JS에서 동적 주입 -->
               </select>
             </div>
           </div>
@@ -454,7 +459,7 @@
       </div>
     </div>
 
-    <!-- 모달: 회원 상세 프로필 열람 및 [패스 충전/등급 관리] 통합 팝업 -->
+    <!-- 모달: 회원 상세 프로필 열람 및 [패스 충전/등급 관리] 통합 팝업 (운영진용) -->
     <div id="member-profile-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 480px; max-height: 90vh; overflow-y: auto;">
         <div class="modal-header">
@@ -532,7 +537,27 @@
       </div>
     </div>
 
-    <!-- [신규 추가] 모달: 운영진용 모임 직권 참가자 강제 편집 팝업 -->
+    <!-- [신규 추가] 모달: 타 회원 프로필 열람용 뷰어 (계원용 단순 뷰어 모달) -->
+    <div id="member-view-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 480px; max-height: 90vh; overflow-y: auto;">
+        <div class="modal-header">
+          <h3 class="modal-title">회원 프로필 정보</h3>
+          <button class="modal-close" id="btn-close-view-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <div id="member-view-modal-body" style="display: flex; flex-direction: column; gap: 20px;">
+          <!-- JS에서 동적 주입 -->
+        </div>
+
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+          <button type="button" class="btn btn-secondary" style="width: 100%; padding: 12px;" id="btn-close-view-modal-confirm">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 모달: 운영진용 모임 직권 참가자 강제 편집 팝업 -->
     <div id="event-participants-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 440px;">
         <div class="modal-header">
@@ -549,7 +574,6 @@
           </p>
           
           <div id="participants-checkbox-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; background: rgba(0,0,0,0.2);">
-            <!-- 동적 주입 -->
           </div>
 
           <div style="display: flex; gap: 12px; margin-top: 10px;">
