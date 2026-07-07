@@ -5,7 +5,7 @@ const CATEGORY_MAP = {
   "모임활동": ["수다", "회식", "축제"]
 };
 
-// 사진 기반 모임 일정 정의 (카테고리 매핑 추가)
+// 사진 기반 모임 일정 정의 (새로운 정예 회원들로 참가자 재정리)
 const DEFAULT_EVENTS = [
   {
     id: "evt-02",
@@ -13,7 +13,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-02T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["박전략", "이루미", "최협력", "정클루", "길시온", "이동준"],
+    participants: ["배우진", "서재원", "김진수", "길시온", "이동준"],
     status: "completed",
     code: "1002",
     mainCategory: "보드게임",
@@ -25,7 +25,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-03T20:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["이루미", "박전략", "최협력", "길시온", "이동준"],
+    participants: ["배우진", "김민준", "고양은", "길시온", "이동준"],
     status: "completed",
     code: "1003",
     mainCategory: "모임활동",
@@ -37,7 +37,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-04T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["박전략", "정클루", "최협력"],
+    participants: ["서재원", "김진수", "배우진"],
     status: "completed",
     code: "1004",
     mainCategory: "보드게임",
@@ -49,7 +49,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-05T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["길시온", "이루미", "이동준"],
+    participants: ["길시온", "배우진", "이동준"],
     status: "completed",
     code: "1005",
     mainCategory: "보드게임",
@@ -61,7 +61,7 @@ const DEFAULT_EVENTS = [
     datetime: "2026-07-07T19:00",
     location: "[이수] 보드계 아지트",
     limit: 10,
-    participants: ["이루미", "박전략"], 
+    participants: ["배우진", "서재원"], 
     status: "ongoing",
     code: "7707",
     mainCategory: "특수활동",
@@ -201,14 +201,17 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의
+// 회원 명부 데이터 정의 (기존 가짜 데이터 폐기, 배우진/서재원/김진수/김민준/고양은 삽입)
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7], pass5Count: 3, freePassCount: 1, monthlyPassExpiry: "2026-08-31" },
   { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 75, count: 29, date: "25.11.17", intro: "O", chat: "O", monthly: [3, 4, 1, 5, 6, 1], allHistory: [1, 6, 5, 1, 4, 3, 1, 5, 3, 0, 0, 0, 0, 0], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
-  { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
-  { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4], pass5Count: 0, freePassCount: 2, monthlyPassExpiry: "" },
-  { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" },
-  { name: "정클루", pw: "1111", role: "⭐ 우수계원", rate: 40, count: 56, date: "25.10.11", intro: "O", chat: "X", monthly: [3, 4, 6, 4, 5, 1], allHistory: [1, 5, 4, 6, 4, 3, 3, 5, 5, 5, 4, 4, 3, 4], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" }
+  
+  // 신규 실명 계원 배치
+  { name: "배우진", pw: "1111", role: "🌱 일반계원", rate: 68, count: 21, date: "26.07.07", intro: "O", chat: "O", monthly: [2, 3, 4, 5, 5, 2], allHistory: [2, 5, 5, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0], pass5Count: 2, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "서재원", pw: "1111", role: "🌱 일반계원", rate: 54, count: 16, date: "26.07.07", intro: "O", chat: "O", monthly: [1, 2, 3, 4, 4, 2], allHistory: [2, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0], pass5Count: 0, freePassCount: 1, monthlyPassExpiry: "" },
+  { name: "김진수", pw: "1111", role: "🌱 일반계원", rate: 48, count: 12, date: "26.07.07", intro: "O", chat: "O", monthly: [1, 1, 2, 3, 3, 2], allHistory: [2, 3, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], pass5Count: 4, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "김민준", pw: "1111", role: "🌱 일반계원", rate: 35, count: 8, date: "26.07.07", intro: "O", chat: "X", monthly: [0, 1, 1, 2, 3, 1], allHistory: [1, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], pass5Count: 1, freePassCount: 0, monthlyPassExpiry: "" },
+  { name: "고양은", pw: "1111", role: "🌱 일반계원", rate: 20, count: 4, date: "26.07.07", intro: "X", chat: "X", monthly: [0, 0, 1, 1, 1, 1], allHistory: [1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], pass5Count: 0, freePassCount: 0, monthlyPassExpiry: "" }
 ];
 
 let state = {
@@ -217,21 +220,22 @@ let state = {
   members: [],
   currentUser: null,
   activeTab: "home",
-  // [필터 상태 추가]
   filterMainCategory: "all",
   filterSubCategory: "all"
 };
 
+// 동호회 명부에 '배우진' 회원이 없거나 박전략이 남아있다면 캐시를 강제 비워 동기화
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
-  const cachedEvents = localStorage.getItem('boardgye_events');
   let needReset = false;
 
   if (cachedMembers) {
     try {
       const parsed = JSON.parse(cachedMembers);
-      const dongjunMember = parsed.find(m => m.name === "이동준");
-      if (!dongjunMember || dongjunMember.date !== "25.11.17" || dongjunMember.count !== 29) {
+      const hasWoojin = parsed.some(m => m.name === "배우진");
+      const hasOldMember = parsed.some(m => m.name === "박전략");
+      
+      if (!hasWoojin || hasOldMember) {
         needReset = true;
       }
     } catch(e) {
@@ -241,20 +245,8 @@ function initForceSync() {
     needReset = true;
   }
 
-  // 모임 데이터에 카테고리 태그 정보가 없는 구형 스토리지인 경우 강제 리셋
-  if (cachedEvents) {
-    try {
-      const parsedEvt = JSON.parse(cachedEvents);
-      if (parsedEvt.length > 0 && parsedEvt[0].mainCategory === undefined) {
-        needReset = true;
-      }
-    } catch(e) {
-      needReset = true;
-    }
-  }
-
   if (needReset) {
-    console.log("카테고리 정리 체계 및 이동준 통계 동기화를 위해 스토리지 캐시를 청소합니다.");
+    console.log("명예의 전당 실명 계원 적용을 위해 캐시 스토리지를 강제 갱신합니다.");
     localStorage.clear();
   }
 }
@@ -526,7 +518,7 @@ function renderHomePass() {
   }
 }
 
-// 출석체크 시 패스 자동 차감
+// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행
 window.handlePassAttendance = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -702,12 +694,10 @@ function closeMemberProfile() {
   document.getElementById('member-profile-modal').classList.remove('active');
 }
 
-// [신규] 카테고리 칩 선택 헬퍼 함수
 window.filterMainCategory = function(mainCat) {
   state.filterMainCategory = mainCat;
-  state.filterSubCategory = "all"; // 메인 변경 시 세부 분류는 '전체'로 초기화
+  state.filterSubCategory = "all";
 
-  // 대분류 탭 활성화 클래스 조율
   const tabs = document.querySelectorAll('.category-main-tab');
   tabs.forEach(tab => {
     const text = tab.textContent.trim();
@@ -738,13 +728,12 @@ window.filterSubCategory = function(subCat) {
   renderApp();
 };
 
-// 세부분류 칩 바 동적 렌더링
 function renderSubChips() {
   const container = document.getElementById('category-sub-chips');
   if (!container) return;
 
   if (state.filterMainCategory === 'all') {
-    container.innerHTML = ""; // 전체 탭일 땐 세부분류 감춤
+    container.innerHTML = "";
     return;
   }
 
@@ -758,7 +747,6 @@ function renderSubChips() {
   container.innerHTML = markup;
 }
 
-// 모임 개설/수정 시 세부 카테고리 옵션 자동 업데이트
 window.updateSubCategoryOptions = function(mode) {
   const mainVal = document.getElementById(mode === 'create' ? 'event-main-cat' : 'edit-main-cat').value;
   const subSelect = document.getElementById(mode === 'create' ? 'event-sub-cat' : 'edit-sub-cat');
@@ -768,7 +756,6 @@ window.updateSubCategoryOptions = function(mode) {
   subSelect.innerHTML = subs.map(sub => `<option value="${sub}">${sub}</option>`).join('');
 };
 
-// [신규] 운영진 전용 직권 모임 참가자 강제 편집 제어 팝업
 window.openParticipantsEditModal = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -777,7 +764,6 @@ window.openParticipantsEditModal = function(eventId) {
   const listRoot = document.getElementById('participants-checkbox-list');
   if (!listRoot) return;
 
-  // 전체 회원 체크박스 생성
   listRoot.innerHTML = state.members.map(member => {
     const isChecked = event.participants.includes(member.name);
     return `
@@ -815,21 +801,16 @@ function handleEditParticipantsSubmit(e) {
     return;
   }
 
-  // [중요: 직권 신규 등록된 인원 대상 자동 패스 차감 반영]
   nextParticipants.forEach(name => {
-    // 기존에 이미 참가해 있던 멤버는 제외
     if (!event.participants.includes(name)) {
       const memberProfile = state.members.find(m => m.name === name);
       if (memberProfile) {
         memberProfile.count += 1;
         memberProfile.rate = Math.min(100, Math.round(memberProfile.rate + 1));
         
-        // 5회 상생 패스 차감 처리
         if (memberProfile.pass5Count && memberProfile.pass5Count > 0) {
           memberProfile.pass5Count -= 1;
-        } 
-        // 5회 패스 없으면 이벤트 무료권 차감
-        else if (memberProfile.freePassCount && memberProfile.freePassCount > 0) {
+        } else if (memberProfile.freePassCount && memberProfile.freePassCount > 0) {
           memberProfile.freePassCount -= 1;
         }
       }
@@ -1005,7 +986,6 @@ window.editEvent = function(eventId) {
   document.getElementById('edit-status-select').value = event.status;
   document.getElementById('edit-code-input').value = event.code;
 
-  // 카테고리 로드 및 매핑
   document.getElementById('edit-main-cat').value = event.mainCategory || "보드게임";
   updateSubCategoryOptions('edit');
   document.getElementById('edit-sub-cat').value = event.subCategory || "자유";
@@ -1027,7 +1007,6 @@ function handleEditEventSubmit(e) {
   event.status = document.getElementById('edit-status-select').value;
   event.code = document.getElementById('edit-code-input').value;
 
-  // 카테고리 정보 저장
   event.mainCategory = document.getElementById('edit-main-cat').value;
   event.subCategory = document.getElementById('edit-sub-cat').value;
 
@@ -1059,7 +1038,6 @@ function renderApp() {
 
   const eventListContainer = document.getElementById('event-list-container');
   if (eventListContainer) {
-    // [중요: 카테고리 실시간 필터링 반영]
     let filteredEvents = [...state.events];
     
     if (state.filterMainCategory !== 'all') {
@@ -1107,7 +1085,6 @@ function renderApp() {
         const extraCount = evt.participants.length - maxVisibleAvatars;
         const extraMarkup = extraCount > 0 ? `<div class="avatar" style="background: rgba(255,255,255,0.1)">+${extraCount}</div>` : '';
 
-        // 카테고리 정보 표식 디자인
         const mainCat = evt.mainCategory || "보드게임";
         const subCat = evt.subCategory || "자유";
 
@@ -1150,7 +1127,6 @@ function renderApp() {
               </div>
 
               <div style="display: flex; gap: 8px; align-items: center;">
-                <!-- [운영자 전용 직권 참가자 강제 편집 버튼] -->
                 ${state.isAdmin && evt.status !== 'completed' ? `<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px; border-color: rgba(167, 139, 250, 0.25); color: #c4b5fd;" onclick="openParticipantsEditModal('${evt.id}')">참가자 편집</button>` : ''}
                 
                 ${
@@ -1309,7 +1285,7 @@ function initEventListeners() {
 
   document.getElementById('btn-create-event-modal').addEventListener('click', () => {
     document.getElementById('create-event-modal').classList.add('active');
-    updateSubCategoryOptions('create'); // 개설 모달 열릴 때 서브카테고리 초기 옵션 주입
+    updateSubCategoryOptions('create');
   });
 
   const closeCreate = () => document.getElementById('create-event-modal').classList.remove('active');
@@ -1326,7 +1302,6 @@ function initEventListeners() {
   document.getElementById('btn-close-member-modal').addEventListener('click', closeMember);
   document.getElementById('btn-close-member-modal-confirm').addEventListener('click', closeMember);
 
-  // 참가자 편집 모달 이벤트 리스너
   const closeParticipants = () => document.getElementById('event-participants-modal').classList.remove('active');
   document.getElementById('btn-close-participants-modal').addEventListener('click', closeParticipants);
   document.getElementById('btn-cancel-participants-modal').addEventListener('click', closeParticipants);
