@@ -236,6 +236,13 @@ let state = {
   filterSubCategory: "all"
 };
 
+// 캘린더 전용 상태: 현재 표시 중인 년/월 및 선택된 날짜
+let calState = {
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(), // 0-indexed (0 = 1월)
+  selectedDate: null // "YYYY-MM-DD" 형식
+};
+
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
   let needReset = false;
@@ -1326,6 +1333,202 @@ function renderApp() {
       membersWrapper.style.display = 'none';
     }
   }
+
+  // 캘린더 탭이 활성화되어 있으면 달력을 다시 렌더링
+  if (state.activeTab === 'calendar') {
+    renderCalendar();
+  }
+}
+
+// =========================================
+// 캘린더 탭 렌더링 로직
+// =========================================
+
+// 캘린더 전체 렌더링: 헤더(년월), 날짜 그리드, 이벤트 피드 주입
+function renderCalendar() {
+  const gridRoot = document.getElementById('calendar-grid-root');
+  const monthTitle = document.getElementById('cal-month-title');
+  const countBadge = document.getElementById('cal-event-count-badge');
+  if (!gridRoot || !monthTitle) return;
+
+  const { year, month } = calState;
+
+  // 년/월 표시 갱신
+  monthTitle.textContent = `${year}년 ${month + 1}월`;
+
+  // 해당 월의 이벤트 목록 필터링
+  const monthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const monthEvents = state.events.filter(evt => evt.datetime.startsWith(monthStr));
+  if (countBadge) countBadge.textContent = `일정 ${monthEvents.length}개`;
+
+  // 달력 그리드 계산
+  const firstDay = new Date(year, month, 1).getDay(); // 0 = 일요일
+  const lastDate = new Date(year, month + 1, 0).getDate();
+  const prevLastDate = new Date(year, month, 0).getDate();
+
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+  let cells = [];
+
+  // 이전 달 날짜 채우기
+  for (let i = firstDay - 1; i >= 0; i--) {
+    cells.push({ date: prevLastDate - i, isCurrentMonth: false, isPrev: true });
+  }
+  // 현재 달 날짜 채우기
+  for (let d = 1; d <= lastDate; d++) {
+    cells.push({ date: d, isCurrentMonth: true, isPrev: false });
+  }
+  // 다음 달 날짜 채우기 (마지막 행을 채울 만큼)
+  const remaining = 42 - cells.length; // 6줄 고정
+  for (let d = 1; d <= remaining; d++) {
+    cells.push({ date: d, isCurrentMonth: false, isPrev: false });
+  }
+
+  // 날짜 셀 DOM 생성
+  gridRoot.innerHTML = cells.map((cell, idx) => {
+    const colDay = idx % 7; // 0=일, 6=토
+    let dateStr = null;
+    let dayEvents = [];
+
+    if (cell.isCurrentMonth) {
+      dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(cell.date).padStart(2, '0')}`;
+      dayEvents = state.events.filter(evt => evt.datetime.startsWith(dateStr));
+    }
+
+    const isToday = dateStr === todayStr;
+    const isSelected = dateStr && dateStr === calState.selectedDate;
+    const isSun = colDay === 0;
+    const isSat = colDay === 6;
+
+    let cellClasses = 'cal-cell';
+    if (!cell.isCurrentMonth) cellClasses += ' other-month';
+    if (isToday) cellClasses += ' today';
+    if (isSelected) cellClasses += ' selected';
+    if (isSun) cellClasses += ' sun';
+    if (isSat) cellClasses += ' sat';
+
+    // 이벤트 피드 배지 (최대 2개 + 더보기)
+    const MAX_PILLS = 2;
+    const pillsHTML = dayEvents.slice(0, MAX_PILLS).map(evt => {
+      const emoji = SUB_CAT_EMOJI[evt.subCategory] || '📅';
+      return `<div class="cal-event-pill ${evt.status}" onclick="event.stopPropagation(); calSelectDay('${dateStr}')">${emoji} ${evt.title}</div>`;
+    }).join('');
+    const moreCount = dayEvents.length - MAX_PILLS;
+    const moreHTML = moreCount > 0 ? `<div class="cal-event-more">+${moreCount}개 더</div>` : '';
+
+    const clickAttr = dateStr ? `onclick="calSelectDay('${dateStr}')"` : '';
+
+    return `
+      <div class="${cellClasses}" ${clickAttr}>
+        <span class="cal-date-num">${cell.date}</span>
+        ${pillsHTML}
+        ${moreHTML}
+      </div>
+    `;
+  }).join('');
+}
+
+// 날짜 셀 클릭: 해당 날짜를 선택하고 상세 패널을 표시
+window.calSelectDay = function(dateStr) {
+  calState.selectedDate = dateStr;
+  renderCalendar();
+  renderCalDayDetail(dateStr);
+};
+
+// 선택된 날짜의 이벤트 상세 패널 렌더링
+function renderCalDayDetail(dateStr) {
+  const panel = document.getElementById('cal-day-detail-panel');
+  const titleEl = document.getElementById('cal-day-detail-title');
+  const listEl = document.getElementById('cal-day-detail-list');
+  if (!panel || !titleEl || !listEl) return;
+
+  const dayEvents = state.events.filter(evt => evt.datetime.startsWith(dateStr));
+
+  // 날짜 타이틀 포맷
+  const d = new Date(dateStr + 'T00:00:00');
+  const weekdays = ['일', '월', '화', '수', '목', '금', '토'];
+  titleEl.textContent = `${d.getMonth() + 1}월 ${d.getDate()}일 (${weekdays[d.getDay()]})`;
+
+  if (dayEvents.length === 0) {
+    listEl.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px 0; font-size: 13px;">이 날에는 모임 일정이 없습니다. 🎲</div>`;
+  } else {
+    listEl.innerHTML = dayEvents.map(evt => {
+      const emoji = SUB_CAT_EMOJI[evt.subCategory] || '📅';
+      const timeStr = new Date(evt.datetime).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+      const statusLabel = evt.status === 'completed' ? '완료됨' : evt.status === 'ongoing' ? '진행중' : '모집중';
+      const joinCount = evt.participants.length;
+      return `
+        <div class="cal-detail-item" onclick="switchToTab('events')">
+          <div class="cal-detail-emoji">${emoji}</div>
+          <div class="cal-detail-info">
+            <span class="cal-detail-title">${evt.title}</span>
+            <span class="cal-detail-meta">${timeStr} · ${evt.location} · ${joinCount}/${evt.limit}명</span>
+          </div>
+          <span class="cal-detail-badge ${evt.status}">${statusLabel}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  panel.style.display = 'block';
+}
+
+// 캘린더 이전/다음/오늘 버튼 이벤트 초기화
+function initCalendar() {
+  const prevBtn = document.getElementById('cal-prev-btn');
+  const nextBtn = document.getElementById('cal-next-btn');
+  const todayBtn = document.getElementById('cal-today-btn');
+  const closeDetail = document.getElementById('cal-close-detail');
+
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      calState.month -= 1;
+      if (calState.month < 0) {
+        calState.month = 11;
+        calState.year -= 1;
+      }
+      calState.selectedDate = null;
+      const panel = document.getElementById('cal-day-detail-panel');
+      if (panel) panel.style.display = 'none';
+      renderCalendar();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      calState.month += 1;
+      if (calState.month > 11) {
+        calState.month = 0;
+        calState.year += 1;
+      }
+      calState.selectedDate = null;
+      const panel = document.getElementById('cal-day-detail-panel');
+      if (panel) panel.style.display = 'none';
+      renderCalendar();
+    });
+  }
+
+  if (todayBtn) {
+    todayBtn.addEventListener('click', () => {
+      const now = new Date();
+      calState.year = now.getFullYear();
+      calState.month = now.getMonth();
+      calState.selectedDate = null;
+      const panel = document.getElementById('cal-day-detail-panel');
+      if (panel) panel.style.display = 'none';
+      renderCalendar();
+    });
+  }
+
+  if (closeDetail) {
+    closeDetail.addEventListener('click', () => {
+      calState.selectedDate = null;
+      const panel = document.getElementById('cal-day-detail-panel');
+      if (panel) panel.style.display = 'none';
+      renderCalendar();
+    });
+  }
 }
 
 window.switchToTab = function(tabName) {
@@ -1469,5 +1672,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initRoleToggle();
   initEventListeners();
+  initCalendar();
   checkLoginSession(); 
 });
