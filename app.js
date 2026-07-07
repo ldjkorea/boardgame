@@ -162,7 +162,7 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의 (이동준 가입일 25.11.17 및 참석 29회 스펙 정밀 세팅)
+// 회원 명부 데이터 정의
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7], pass5Count: 3, freePassCount: 1, monthlyPassExpiry: "2026-08-31" },
   { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 75, count: 29, date: "25.11.17", intro: "O", chat: "O", monthly: [3, 4, 1, 5, 6, 1], allHistory: [1, 6, 5, 1, 4, 3, 1, 5, 3, 0, 0, 0, 0, 0], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
@@ -180,7 +180,6 @@ let state = {
   activeTab: "home"
 };
 
-// 강제 캐시 초기화 및 멤버십 속성(pass5Count, freePassCount, monthlyPassExpiry) 마일그레이션 적용
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
   let needReset = false;
@@ -190,7 +189,7 @@ function initForceSync() {
       const parsed = JSON.parse(cachedMembers);
       const dongjunMember = parsed.find(m => m.name === "이동준");
       
-      // 이동준 계정의 가입일이 '25.11.17'이 아니거나 카운트가 29가 아닌 경우 강제 리셋 동기화
+      // 혹시라도 구버전 데이터가 메모리를 교란할 시 강제 초기화
       if (!dongjunMember || dongjunMember.date !== "25.11.17" || dongjunMember.count !== 29) {
         needReset = true;
       }
@@ -474,7 +473,7 @@ function renderHomePass() {
   }
 }
 
-// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행
+// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행 (명칭 반영)
 window.handlePassAttendance = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -496,7 +495,7 @@ window.handlePassAttendance = function(eventId) {
       myProfile.rate = Math.min(100, Math.round(myProfile.rate + 1));
 
       // [자동 차감 로직 실행]
-      // 1순위: 대동결의권
+      // 1순위: 무제한 입장권 (MONTHLY PASS)
       let hasValidMonthly = false;
       if (myProfile.monthlyPassExpiry) {
         const expiryDate = new Date(myProfile.monthlyPassExpiry);
@@ -508,12 +507,12 @@ window.handlePassAttendance = function(eventId) {
       }
 
       if (hasValidMonthly) {
-        deductionMessage = `결의권 프리패스로 출석 완료! (만료: ${myProfile.monthlyPassExpiry}) 👑`;
+        deductionMessage = `무제한 입장권 (MONTHLY PASS) 적용으로 프리패스 출석 완료! 👑`;
       } 
-      // 2순위: 상생권 5회차 잔여 차감
+      // 2순위: 5일 실속 패스 (WEEKLY PASS) 차감
       else if (myProfile.pass5Count && myProfile.pass5Count > 0) {
         myProfile.pass5Count -= 1;
-        deductionMessage = `상생권 1회 차감 완료! (남은 횟수: ${myProfile.pass5Count}회) 🎟️`;
+        deductionMessage = `5일 실속 패스 (WEEKLY PASS) 1회 차감 완료! (남은 횟수: ${myProfile.pass5Count}회) 🎟️`;
       } 
       // 3순위: 이벤트 무료증정권 잔여 차감
       else if (myProfile.freePassCount && myProfile.freePassCount > 0) {
@@ -522,7 +521,7 @@ window.handlePassAttendance = function(eventId) {
       } 
       // 4순위: 차감할 패스 없음
       else {
-        deductionMessage = `보유 패스 없음: 현장 결제 대상입니다. (평일 9k / 주말 15k won) 💳`;
+        deductionMessage = `보유 패스 없음: 현장 결제 대상입니다. (DAY PASS 9k / 15k won) 💳`;
       }
     }
 
@@ -560,7 +559,7 @@ window.openMemberProfile = function(memberName) {
       <span style="font-size: 13px; font-weight: 700; color: var(--primary-color); display: block; margin-bottom: 8px;">보유 패스 내역</span>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px; margin-bottom: 6px;">
         <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
-          <span style="color: var(--text-muted);">상생권 잔여</span>
+          <span style="color: var(--text-muted);">5일 패스 (WEEKLY)</span>
           <strong style="color: var(--accent-green);">${member.pass5Count || 0}회</strong>
         </div>
         <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); display: flex; justify-content: space-between;">
@@ -569,7 +568,7 @@ window.openMemberProfile = function(memberName) {
         </div>
       </div>
       <div style="background: rgba(255,255,255,0.02); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 11px; display: flex; justify-content: space-between;">
-        <span style="color: var(--text-muted);">대동결의권 (월 정기권) 만료 예정일</span>
+        <span style="color: var(--text-muted);">무제한 입장권 (MONTHLY) 만료일</span>
         <strong>${member.monthlyPassExpiry ? member.monthlyPassExpiry : "미사용"}</strong>
       </div>
     </div>
@@ -624,7 +623,7 @@ window.setExpiryDays = function(days) {
 
 window.clearExpiry = function() {
   document.getElementById('edit-pass-expiry-input').value = "";
-  showToast("월간 정기권 기한이 제거되었습니다.");
+  showToast("무제한 입장권 기한이 제거되었습니다.");
 };
 
 function handleEditMemberSubmit(e) {
@@ -705,7 +704,7 @@ function renderMyProfileTab() {
     </div>
   `;
 
-  // 개인 보유 패스 잔량 렌더링
+  // 개인 보유 패스 잔량 렌더링 (최종 브랜드명 반영)
   const passCard = document.getElementById('my-pass-stock-card');
   const passRoot = document.getElementById('my-pass-stock-list');
   if (passCard && passRoot) {
@@ -721,7 +720,7 @@ function renderMyProfileTab() {
 
     passRoot.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
-        <span style="color: var(--text-muted);">아지트 상생 패스 (5회권)</span>
+        <span style="color: var(--text-muted);">아지트 5일 실속 패스 (WEEKLY PASS)</span>
         <strong style="color: var(--accent-green); font-size: 14px;">${me.pass5Count || 0}회 남음</strong>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
@@ -729,7 +728,7 @@ function renderMyProfileTab() {
         <strong style="color: var(--secondary-color); font-size: 14px;">${me.freePassCount || 0}회 남음</strong>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 10px; font-size: 13px;">
-        <span style="color: var(--text-muted);">월간 대동결의 프리패스 만료일</span>
+        <span style="color: var(--text-muted);">아지트 무제한 입장권 (MONTHLY PASS) 만료일</span>
         <strong style="font-size: 12px; color: var(--primary-color);">${expiryText}</strong>
       </div>
     `;
@@ -784,7 +783,6 @@ function renderMyProfileTab() {
     historyCard.style.display = 'block';
     historyTotal.textContent = `${me.count}회`;
 
-    // 요청하신 실데이터 월별 매핑 (26년 7월 ~ 25년 6월까지의 역순 나열)
     const monthLabels = [
       "26년 7월", "26년 6월", "26년 5월", "26년 4월", "26년 3월", "26년 2월", 
       "26년 1월", "25년 12월", "25년 11월", "25년 10월", "25년 9월", "25년 8월", "25년 7월", "25년 6월"
@@ -979,7 +977,7 @@ function renderApp() {
               </div>
               <div style="text-align: right; display: flex; flex-direction: column; gap: 2px;">
                 <span class="rank-rate">${member.rate}%</span>
-                <span style="font-size: 10px; color: var(--text-muted);">상생: ${member.pass5Count || 0}회 / 무료: ${member.freePassCount || 0}회</span>
+                <span style="font-size: 10px; color: var(--text-muted);">${member.pass5Count || 0}회 / 무료: ${member.freePassCount || 0}회</span>
               </div>
             </div>
           `;
