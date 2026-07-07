@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>보드계(契)모임 - 보드게임 동호회 출석 관리</title>
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- 로그인 섹션 (비인증 상태 시 상시 표출) -->
+  <div id="login-container" class="login-overlay">
+    <div class="login-card">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <div class="brand-logo" style="justify-content: center; font-size: 32px; font-weight: 900; margin-bottom: 8px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #c4b5fd;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          보드계(契)모임
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted);">보드게임 동호회 멤버 로그인</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="login-name">이름 (ID)</label>
+          <input type="text" id="login-name" class="form-control" placeholder="예: 길시온" required>
+        </div>
+        <div class="form-group">
+          <label for="login-password">비밀번호 (PW)</label>
+          <input type="password" id="login-password" class="form-control" placeholder="초기 PW: 1111" required>
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%; margin-top: 16px; padding: 14px;">
+          로그인 및 접속하기
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 메인 앱 뷰포트 (로그인 성공 전에는 hidden 상태로 로딩) -->
+  <div class="app-wrapper" id="main-app-wrapper" style="display: none;">
+    
+    <!-- 1. 데스크톱용 왼쪽 사이드바 -->
+    <aside class="sidebar">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #c4b5fd;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          보드계(契)모임
+        </div>
+        <span class="brand-desc">Board-Gye Moim</span>
+      </div>
+
+      <nav class="sidebar-menu">
+        <div class="sidebar-item active" data-tab="home">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          홈 대시보드
+        </div>
+        <div class="sidebar-item" data-tab="events">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          모임 일정 관리
+        </div>
+        <div class="sidebar-item" data-tab="ranking" id="sidebar-nav-ranking">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          명예의 전당 (랭킹)
+        </div>
+        <div class="sidebar-item" data-tab="profile">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          마이 프로필
+        </div>
+      </nav>
+
+      <!-- 로그아웃용 하단 버튼 -->
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <button class="role-badge" id="btn-sidebar-logout" style="text-align: center; border-color: rgba(239, 68, 68, 0.2); color: #f87171;">
+          로그아웃
+        </button>
+        <div style="font-size: 11px; color: var(--text-muted); text-align: center;">
+          © 2026 보드계모임.
+        </div>
+      </div>
+    </aside>
+
+    <!-- 2. 우측 메인 뷰포트 영역 -->
+    <div class="main-viewport">
+      
+      <!-- 상단 헤더 -->
+      <header>
+        <div class="mobile-brand-logo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #c4b5fd;"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          보드계(契)
+        </div>
+        
+        <div style="flex: 1; display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+          <span style="font-size: 12px; font-weight: 700; color: var(--text-muted);" id="header-user-welcome">길시온님</span>
+          <div id="role-toggle" class="role-badge admin">운영진 모드</div>
+        </div>
+      </header>
+
+      <!-- 메인 콘텐츠 패널 -->
+      <main class="main-content">
+        
+        <!-- 탭 1: 홈 (대시보드) -->
+        <section id="tab-home" class="tab-pane active">
+          <div id="home-pass-container"></div>
+
+          <!-- 마이 출석 요약 카드 -->
+          <div class="glass-card">
+            <h3 style="font-family: var(--font-title); font-size: 16px; margin-bottom: 8px;">나의 모임 출석률</h3>
+            <div class="summary-grid">
+              <div class="summary-item">
+                <span class="summary-label">이번 달 출석률</span>
+                <span class="summary-val" id="my-attendance-rate">0%</span>
+              </div>
+              <div class="summary-item">
+                <span class="summary-label">누적 참석 횟수</span>
+                <span class="summary-val" id="my-attendance-count">0회</span>
+              </div>
+            </div>
+            <div class="progress-bar-container">
+              <div class="progress-bar-fill" id="my-attendance-progress"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 탭 2: 모임 일정 -->
+        <section id="tab-events" class="tab-pane">
+          <div class="section-title">
+            <div>
+              <span>보드게임 모임 일정</span>
+              <div class="section-subtitle">동호회원들과 함께 게임을 신청하고 즐겨보세요.</div>
+            </div>
+            <button id="btn-create-event-modal" class="btn" style="padding: 8px 14px; font-size: 12px; display: none;">
+              + 모임 개설
+            </button>
+          </div>
+          <div id="event-list-container" class="event-list"></div>
+        </section>
+
+        <!-- 탭 3: 랭킹 -->
+        <section id="tab-ranking" class="tab-pane">
+          <div>
+            <span class="section-title">출석 명예의 전당</span>
+            <div class="section-subtitle" style="margin-bottom: 16px;">이번 달 가장 성실한 보드게이머 순위입니다.</div>
+            <div id="rank-list-container" class="rank-list"></div>
+          </div>
+        </section>
+
+        <!-- 탭 4: 프로필 -->
+        <section id="tab-profile" class="tab-pane">
+          
+          <!-- 내 프로필 카드 -->
+          <div id="my-profile-card-container"></div>
+
+          <!-- 참석현황 그래프 (최근 6개월) -->
+          <div class="glass-card" id="my-chart-card" style="display: none;">
+            <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 4px; color: var(--primary-color);">나의 참석율 그래프</h4>
+            <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 20px;">최근 6개월 참석 현황 (단위: 회)</p>
+            
+            <div class="chart-container" id="my-chart-container-root"></div>
+          </div>
+
+          <!-- 동호회 멤버 리스트 조회 영역 -->
+          <div id="members-list-wrapper">
+            <div class="section-title" style="margin-top: 10px; margin-bottom: 12px;">
+              <span>동호회 멤버 목록</span>
+            </div>
+            <div id="member-list-container" class="rank-list"></div>
+          </div>
+
+          <!-- 전체 월별 참석 현황 리스트 -->
+          <div class="glass-card" id="my-history-card" style="display: none; padding-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px;">
+              <h4 style="font-size: 15px; font-weight: 700; color: var(--primary-color);">나의 월별 참석 횟수</h4>
+              <span style="font-size: 13px; font-weight: 700;">총합: <strong style="color: var(--secondary-color); font-size: 16px;" id="my-history-total-label">0회</strong></span>
+            </div>
+            
+            <div style="max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;" id="my-history-list-root"></div>
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 12px;">
+            <button id="btn-mobile-logout" class="btn btn-secondary" style="flex: 1; border-color: rgba(239, 68, 68, 0.2); color: #f87171; font-size: 12px; padding: 10px;">
+              로그아웃
+            </button>
+            <button id="btn-reset-data" class="btn btn-secondary" style="flex: 1; border-color: rgba(255, 255, 255, 0.1); color: var(--text-muted); font-size: 12px; padding: 10px;">
+              데이터 초기화
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- 모바일 전용 하단 탭 바 -->
+      <nav class="mobile-nav-bar">
+        <div class="mobile-nav-item active" data-tab="home">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          홈
+        </div>
+        <div class="mobile-nav-item" data-tab="events">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          모임
+        </div>
+        <div class="mobile-nav-item" data-tab="ranking">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
+          랭킹
+        </div>
+        <div class="mobile-nav-item" data-tab="profile">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          프로필
+        </div>
+      </nav>
+
+    </div>
+
+    <!-- 모달: 모임 생성 팝업 (운영진 전용) -->
+    <div id="create-event-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">새로운 보드계모임 개설</h3>
+          <button class="modal-close" id="btn-close-create">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <form id="create-event-form">
+          <div class="form-group">
+            <label for="event-title-input">모임 일정 이름</label>
+            <input type="text" id="event-title-input" class="form-control" placeholder="예: 자유벙" required>
+          </div>
+          <div class="form-group">
+            <label for="event-date-input">일시</label>
+            <input type="datetime-local" id="event-date-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="event-location-input">장소</label>
+            <input type="text" id="event-location-input" class="form-control" value="[이수] 보드계 아지트" required>
+          </div>
+          <div class="form-group">
+            <label for="event-limit-input">모집 정원</label>
+            <input type="number" id="event-limit-input" class="form-control" min="2" max="50" value="10" required>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-cancel-create">취소</button>
+            <button type="submit" class="btn" style="flex: 1;">개설하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 모달: 모임 수정 팝업 (운영진 전용) -->
+    <div id="edit-event-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title">모임 일정 수정</h3>
+          <button class="modal-close" id="btn-close-edit">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <form id="edit-event-form">
+          <input type="hidden" id="edit-event-id">
+          
+          <div class="form-group">
+            <label for="edit-title-input">모임 일정 이름</label>
+            <input type="text" id="edit-title-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-date-input">일시</label>
+            <input type="datetime-local" id="edit-date-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-location-input">장소</label>
+            <input type="text" id="edit-location-input" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-limit-input">모집 정원</label>
+            <input type="number" id="edit-limit-input" class="form-control" min="2" max="50" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-status-select">진행 상태</label>
+            <select id="edit-status-select" class="form-control" style="background: #181a21;">
+              <option value="scheduled">모집중</option>
+              <option value="ongoing">진행중 / 출석중</option>
+              <option value="completed">완료됨</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-code-input">출석 코드 (4자리 숫자)</label>
+            <input type="text" id="edit-code-input" class="form-control" pattern="[0-9]{4}" maxlength="4" placeholder="예: 7392" required>
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1;" id="btn-cancel-edit">취소</button>
+            <button type="submit" class="btn" style="flex: 1;">저장하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 모달: 회원 상세 프로필 열람 팝업 (운영진 모드 전용) -->
+    <div id="member-profile-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 460px;">
+        <div class="modal-header">
+          <h3 class="modal-title">멤버 상세 프로필</h3>
+          <button class="modal-close" id="btn-close-member-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <div id="member-modal-body" style="display: flex; flex-direction: column; gap: 18px;"></div>
+        
+        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+          <button class="btn btn-secondary" style="padding: 8px 16px; font-size: 13px;" id="btn-close-member-modal-confirm">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 토스트 알림창 -->
+    <div id="toast" class="toast">출석체크 완료! 🎉</div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
