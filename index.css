@@ -819,7 +819,7 @@ header {
 
 /* 
   =========================================
-  [신규] 요금제 전용 스타일
+  요금제 전용 스타일 (정밀 줄맞춤 패치)
   =========================================
 */
 .pricing-grid {
@@ -831,12 +831,13 @@ header {
 
 .price-item {
   border: 1px solid var(--border-color);
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(18, 20, 29, 0.5);
   border-radius: 16px;
-  padding: 18px 20px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  justify-content: space-between; /* 높이가 달라도 하단 정렬 통일 */
+  min-height: 154px;
   transition: all 0.3s ease;
 }
 
@@ -848,38 +849,44 @@ header {
 .price-header {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .price-badge {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 4px 8px;
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .price-title {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
 }
 
 .price-values {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  width: 100%;
 }
 
+/* 칼맞춤을 위한 좌우 Flex 레이아웃 보장 */
 .price-val-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  padding-bottom: 6px;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+  font-size: 12.5px;
+  width: 100%;
+  padding-bottom: 8px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
 }
 
 .price-val-row:last-child {
@@ -889,13 +896,26 @@ header {
 
 .price-label {
   color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* 취소선(정상가) 데코레이션 스타일 */
+.price-strike-label {
+  font-size: 10px;
+  text-decoration: line-through;
+  opacity: 0.45;
+  color: var(--text-muted);
 }
 
 .price-money {
   font-family: var(--font-title);
   font-weight: 800;
-  font-size: 15px;
+  font-size: 14.5px;
   color: #fff;
+  text-align: right;
+  white-space: nowrap;
 }
 
 /* 
@@ -910,12 +930,12 @@ header {
   .mobile-nav-bar {
     display: none;
   }
-  /* 데스크톱에서는 요금제 그리드를 가로 3열 레이아웃으로 변경 */
   .pricing-grid {
     flex-direction: row;
   }
   .price-item {
     flex: 1;
+    min-height: 172px; /* 가로 배열 시 다단 높이 정밀 고정 */
   }
 }
 
