@@ -51,7 +51,7 @@
       </div>
     </div>
 
-    <!-- B. 회원가입 카드 (최초 숨김) -->
+    <!-- B. 회원가입 카드 -->
     <div class="login-card" id="card-register-view" style="display: none;">
       <div style="text-align: center; margin-bottom: 24px;">
         <div class="brand-logo" style="justify-content: center; font-size: 32px; font-weight: 900; margin-bottom: 8px;">
@@ -257,7 +257,7 @@
 
     </div>
 
-    <!-- 모달: 모임 생성 팝업 (운영진 전용) -->
+    <!-- 모달: 모임 생성 팝업 -->
     <div id="create-event-modal" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
@@ -293,7 +293,7 @@
       </div>
     </div>
 
-    <!-- 모달: 모임 수정 팝업 (운영진 전용) -->
+    <!-- 모달: 모임 수정 팝업 -->
     <div id="edit-event-modal" class="modal-overlay">
       <div class="modal-content">
         <div class="modal-header">
@@ -343,11 +343,11 @@
       </div>
     </div>
 
-    <!-- 모달: 회원 상세 프로필 열람 및 [수정] 팝업 (운영진 모드 전용) -->
+    <!-- 모달: 회원 상세 프로필 열람 및 [수정] 팝업 -->
     <div id="member-profile-modal" class="modal-overlay">
       <div class="modal-content" style="max-width: 460px;">
         <div class="modal-header">
-          <h3 class="modal-title">멤버 프로필 및 권한 관리</h3>
+          <h3 class="modal-title">멤버 프로필 및 등급 권한 관리</h3>
           <button class="modal-close" id="btn-close-member-modal">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
@@ -355,7 +355,7 @@
         
         <div id="member-modal-body" style="display: flex; flex-direction: column; gap: 18px;"></div>
         
-        <!-- [개선] 모임장이 다른 회원의 정보와 권한을 즉시 변경할 수 있는 인라인 편집 폼 영역 -->
+        <!-- [전통 계원 등급] 6가지 등급 선택창 반영 -->
         <form id="edit-member-role-form" style="border-top: 1px solid var(--border-color); padding-top: 14px; margin-top: 4px; display: flex; flex-direction: column; gap: 12px;">
           <input type="hidden" id="edit-member-target-name">
           
@@ -363,10 +363,12 @@
             <div class="form-group" style="margin: 0;">
               <label for="edit-member-role-select">등급/역할 변경</label>
               <select id="edit-member-role-select" class="form-control" style="background: #181a21; padding: 8px 12px; font-size: 13px;">
-                <option value="일반 회원">일반 회원</option>
-                <option value="실버 다이스">실버 다이스</option>
-                <option value="골드 다이스">골드 다이스</option>
-                <option value="🔴 모임장">🔴 모임장</option>
+                <option value="🌱 일반계원">🌱 일반계원</option>
+                <option value="⭐ 우수계원">⭐ 우수계원</option>
+                <option value="💎 특급계원">💎 특급계원</option>
+                <option value="🚪 문지기">🚪 문지기</option>
+                <option value="👑 운영진">👑 운영진</option>
+                <option value="🔴 관리자">🔴 관리자</option>
               </select>
             </div>
             
