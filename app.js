@@ -5,7 +5,21 @@ const CATEGORY_MAP = {
   "모임활동": ["수다", "회식", "축제"]
 };
 
-// 사진 기반 모임 일정 정의 (새로운 정예 회원들로 참가자 재정리)
+// 세부분류별 대표 이모지 엠블럼 매핑
+const SUB_CAT_EMOJI = {
+  "전략": "♟️",
+  "파티": "🎲",
+  "자유": "🔄",
+  "머미": "🧙",
+  "크씬": "🕵️",
+  "방탈": "🚪",
+  "클밍": "🧗",
+  "수다": "💬",
+  "회식": "🍻",
+  "축제": "🎪"
+};
+
+// 사진 기반 모임 일정 정의
 const DEFAULT_EVENTS = [
   {
     id: "evt-02",
@@ -201,12 +215,10 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의 (기존 가짜 데이터 폐기, 배우진/서재원/김진수/김민준/고양은 삽입)
+// 회원 명부 데이터 정의
 const DEFAULT_MEMBERS = [
   { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7], pass5Count: 3, freePassCount: 1, monthlyPassExpiry: "2026-08-31" },
   { name: "이동준", pw: "1111", role: "🔴 관리자", rate: 75, count: 29, date: "25.11.17", intro: "O", chat: "O", monthly: [3, 4, 1, 5, 6, 1], allHistory: [1, 6, 5, 1, 4, 3, 1, 5, 3, 0, 0, 0, 0, 0], pass5Count: 5, freePassCount: 0, monthlyPassExpiry: "" },
-  
-  // 신규 실명 계원 배치
   { name: "배우진", pw: "1111", role: "🌱 일반계원", rate: 68, count: 21, date: "26.07.07", intro: "O", chat: "O", monthly: [2, 3, 4, 5, 5, 2], allHistory: [2, 5, 5, 5, 4, 3, 2, 0, 0, 0, 0, 0, 0, 0], pass5Count: 2, freePassCount: 0, monthlyPassExpiry: "" },
   { name: "서재원", pw: "1111", role: "🌱 일반계원", rate: 54, count: 16, date: "26.07.07", intro: "O", chat: "O", monthly: [1, 2, 3, 4, 4, 2], allHistory: [2, 4, 4, 4, 3, 2, 1, 0, 0, 0, 0, 0, 0, 0], pass5Count: 0, freePassCount: 1, monthlyPassExpiry: "" },
   { name: "김진수", pw: "1111", role: "🌱 일반계원", rate: 48, count: 12, date: "26.07.07", intro: "O", chat: "O", monthly: [1, 1, 2, 3, 3, 2], allHistory: [2, 3, 3, 3, 2, 1, 1, 0, 0, 0, 0, 0, 0, 0], pass5Count: 4, freePassCount: 0, monthlyPassExpiry: "" },
@@ -224,7 +236,6 @@ let state = {
   filterSubCategory: "all"
 };
 
-// 동호회 명부에 '배우진' 회원이 없거나 박전략이 남아있다면 캐시를 강제 비워 동기화
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
   let needReset = false;
@@ -232,10 +243,8 @@ function initForceSync() {
   if (cachedMembers) {
     try {
       const parsed = JSON.parse(cachedMembers);
-      const hasWoojin = parsed.some(m => m.name === "배우진");
-      const hasOldMember = parsed.some(m => m.name === "박전략");
-      
-      if (!hasWoojin || hasOldMember) {
+      const dongjunMember = parsed.find(m => m.name === "이동준");
+      if (!dongjunMember || dongjunMember.date !== "25.11.17" || dongjunMember.count !== 29) {
         needReset = true;
       }
     } catch(e) {
@@ -518,7 +527,6 @@ function renderHomePass() {
   }
 }
 
-// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행
 window.handlePassAttendance = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -1087,24 +1095,35 @@ function renderApp() {
 
         const mainCat = evt.mainCategory || "보드게임";
         const subCat = evt.subCategory || "자유";
+        const emoji = SUB_CAT_EMOJI[subCat] || "♟️";
+
+        // 인원 채우기 비율 및 게이지 계산
+        const fillPercent = Math.min(100, Math.round((evt.participants.length / evt.limit) * 100));
 
         return `
           <div class="glass-card event-card">
             <div class="event-card-header">
-              <div>
-                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                  <span style="font-size: 10px; background: rgba(167, 139, 250, 0.15); color: #c4b5fd; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(167, 139, 250, 0.2); font-weight: 700;">
+              <!-- 좌측 네온 서클 엠블럼 -->
+              <div class="event-emblem-wrapper">
+                ${emoji}
+              </div>
+
+              <!-- 우측 텍스트 정보 -->
+              <div class="event-card-details">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                  <span style="font-size: 9px; background: rgba(167, 139, 250, 0.12); color: #c4b5fd; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(167, 139, 250, 0.2); font-weight: 700;">
                     ${mainCat}
                   </span>
-                  <span style="font-size: 10px; background: rgba(244, 114, 182, 0.15); color: #f472b6; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(244, 114, 182, 0.2); font-weight: 700;">
+                  <span style="font-size: 9px; background: rgba(244, 114, 182, 0.12); color: #f472b6; padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(244, 114, 182, 0.2); font-weight: 700;">
                     ${subCat}
                   </span>
                 </div>
                 <h4 class="event-title">${evt.title}</h4>
                 <span class="section-subtitle">${dateFormatted}</span>
               </div>
+              
               <div style="display: flex; align-items: center; gap: 8px;">
-                ${state.isAdmin ? `<button class="role-badge" style="border-color: rgba(255,255,255,0.15); color: #fff;" onclick="editEvent('${evt.id}')">수정</button>` : ''}
+                ${state.isAdmin ? `<button class="role-badge" style="border-color: rgba(255, 255, 255, 0.15); color: #fff;" onclick="editEvent('${evt.id}')">수정</button>` : ''}
                 <span class="event-badge ${statusClass}">${statusText}</span>
               </div>
             </div>
@@ -1114,9 +1133,16 @@ function renderApp() {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
                 <span>${evt.location}</span>
               </div>
-              <div class="info-row">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>참가인원: ${evt.participants.length} / ${evt.limit}명</span>
+              
+              <!-- [고도화] 정밀 입체 인원 게이지 바 추가 -->
+              <div class="event-gauge-container">
+                <div class="event-gauge-header">
+                  <span>모집 정원 현황</span>
+                  <strong style="color: var(--secondary-color);">${evt.participants.length} / ${evt.limit}명 (${fillPercent}%)</strong>
+                </div>
+                <div class="event-gauge-bar">
+                  <div class="event-gauge-fill" style="width: ${fillPercent}%;"></div>
+                </div>
               </div>
             </div>
 
