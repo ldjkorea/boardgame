@@ -428,45 +428,88 @@ header {
   margin-top: 16px;
 }
 
+/* 
+  =========================================
+  [고도화] 모임 일정 카드 디자인 개편
+  =========================================
+*/
 .event-card {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  position: relative;
+  background: radial-gradient(circle at top right, rgba(167, 139, 250, 0.04) 0%, rgba(18, 20, 29, 0.75) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 24px;
+  overflow: hidden;
+  padding: 24px;
+  transition: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.event-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(167, 139, 250, 0.3);
+  box-shadow: 0 12px 30px -10px rgba(167, 139, 250, 0.25);
 }
 
 .event-card-header {
   display: flex;
+  gap: 16px;
+  align-items: center;
   justify-content: space-between;
-  align-items: flex-start;
+}
+
+/* 모임 카테고리 엠블럼 심볼 영역 */
+.event-emblem-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(167, 139, 250, 0.2) 0%, rgba(244, 114, 182, 0.1) 100%);
+  border: 1px solid rgba(167, 139, 250, 0.25);
+  font-size: 26px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.event-card-details {
+  flex: 1;
 }
 
 .event-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--text-main);
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  font-family: var(--font-title);
+  letter-spacing: -0.3px;
 }
 
 .event-badge {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 700;
   padding: 4px 10px;
   border-radius: 8px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .event-badge.scheduled {
-  background: rgba(167, 139, 250, 0.12);
+  background: rgba(167, 139, 250, 0.15);
   color: #c4b5fd;
-  border: 1px solid rgba(167, 139, 250, 0.25);
+  border: 1px solid rgba(167, 139, 250, 0.3);
 }
 
 .event-badge.ongoing {
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.2);
   color: #34d399;
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
 }
 
 .event-badge.completed {
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-muted);
   border: 1px solid var(--border-color);
 }
@@ -474,15 +517,18 @@ header {
 .event-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   font-size: 13px;
-  color: var(--text-muted);
+  background: rgba(0, 0, 0, 0.15);
+  padding: 12px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.02);
 }
 
 .info-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .info-row svg {
@@ -491,13 +537,42 @@ header {
   color: var(--primary-color);
 }
 
+/* 정원 대비 참석률 시각 게이지 바 */
+.event-gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.event-gauge-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.event-gauge-bar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.event-gauge-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a78bfa 0%, #ec4899 100%);
+  border-radius: 99px;
+  transition: width 0.8s ease;
+}
+
 .event-card-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-top: 14px;
   border-top: 1px solid var(--border-color);
-  font-size: 12px;
 }
 
 .participants-avatars {
@@ -912,11 +987,7 @@ header {
   white-space: nowrap;
 }
 
-/* 
-  =========================================
-  [신규] 대분류 탭 & 세부분류 칩 디자인
-  =========================================
-*/
+/* 대분류 탭 & 세부분류 칩 디자인 */
 .category-main-tab {
   font-size: 13px;
   font-weight: 700;
