@@ -162,13 +162,13 @@ const DEFAULT_EVENTS = [
   }
 ];
 
-// 회원 명부 데이터 정의
+// 회원 명부 데이터 정의 (지정 등급 체계로 업그레이드)
 const DEFAULT_MEMBERS = [
-  { name: "길시온", pw: "1111", role: "🔴 모임장", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7] },
-  { name: "박전략", pw: "1111", role: "실버 다이스", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6] },
-  { name: "이루미", pw: "1111", role: "실버 다이스", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4] },
-  { name: "최협력", pw: "1111", role: "브론즈 다이스", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4] },
-  { name: "정클루", pw: "1111", role: "브론즈 다이스", rate: 40, count: 56, date: "25.10.11", intro: "O", chat: "X", monthly: [3, 4, 6, 4, 5, 1], allHistory: [1, 5, 4, 6, 4, 3, 3, 5, 5, 5, 4, 4, 3, 4] }
+  { name: "길시온", pw: "1111", role: "🔴 관리자", rate: 92, count: 149, date: "25.05.19", intro: "O", chat: "O", monthly: [9, 12, 16, 11, 13, 7], allHistory: [7, 12, 16, 11, 13, 9, 10, 14, 13, 13, 10, 8, 4, 7] },
+  { name: "박전략", pw: "1111", role: "👑 운영진", rate: 85, count: 120, date: "25.06.12", intro: "O", chat: "O", monthly: [6, 10, 14, 9, 11, 5], allHistory: [5, 11, 9, 14, 10, 6, 8, 12, 11, 10, 8, 6, 4, 6] },
+  { name: "이루미", pw: "1111", role: "🚪 문지기", rate: 80, count: 112, date: "25.07.24", intro: "O", chat: "O", monthly: [8, 9, 13, 8, 10, 6], allHistory: [6, 10, 8, 13, 9, 8, 7, 11, 10, 9, 9, 8, 4, 4] },
+  { name: "최협력", pw: "1111", role: "💎 특급계원", rate: 50, count: 70, date: "25.09.05", intro: "O", chat: "O", monthly: [4, 5, 8, 5, 6, 2], allHistory: [2, 6, 5, 8, 5, 4, 4, 7, 6, 6, 5, 5, 3, 4] },
+  { name: "정클루", pw: "1111", role: "⭐ 우수계원", rate: 40, count: 56, date: "25.10.11", intro: "O", chat: "X", monthly: [3, 4, 6, 4, 5, 1], allHistory: [1, 5, 4, 6, 4, 3, 3, 5, 5, 5, 4, 4, 3, 4] }
 ];
 
 let state = {
@@ -201,7 +201,12 @@ function checkLoginSession() {
     state.currentUser = sessionUser;
     const userProfile = state.members.find(m => m.name === sessionUser);
     if (userProfile) {
-      state.isAdmin = (userProfile.role.includes("모임장"));
+      // 역할명에 관리자, 운영진, 문지기가 들어가는 경우 운영진 모드 스위치 가능
+      state.isAdmin = (
+        userProfile.role.includes("관리자") || 
+        userProfile.role.includes("운영진") || 
+        userProfile.role.includes("문지기")
+      );
     }
     
     document.getElementById('login-container').style.display = 'none';
@@ -235,7 +240,6 @@ function handleLoginSubmit(e) {
   }
 }
 
-// [신규] 회원가입 액션 핸들러
 function handleRegisterSubmit(e) {
   e.preventDefault();
   const name = document.getElementById('reg-name').value.trim();
@@ -246,7 +250,6 @@ function handleRegisterSubmit(e) {
     return;
   }
 
-  // 오늘 날짜 계산 (예: 26.07.07 포맷)
   const now = new Date();
   const year = String(now.getFullYear()).slice(-2);
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -256,7 +259,7 @@ function handleRegisterSubmit(e) {
   const newMember = {
     name: name,
     pw: pw,
-    role: "일반 회원",
+    role: "🌱 일반계원", // 기본 등급 설정
     rate: 0,
     count: 0,
     date: formattedDate,
@@ -269,11 +272,9 @@ function handleRegisterSubmit(e) {
   state.members.push(newMember);
   saveData();
 
-  // 가입 즉시 자동 로그인
   sessionStorage.setItem('boardgye_session_user', name);
   showToast("보드계모임 가입을 환영합니다! 🎉");
   
-  // 가입 폼 초기화 및 뷰 전환
   document.getElementById('register-form').reset();
   document.getElementById('card-register-view').style.display = 'none';
   document.getElementById('card-login-view').style.display = 'block';
@@ -360,6 +361,24 @@ function initPassCodeInputEvents() {
       }
     });
   });
+}
+
+// 데이터 강제 등급 리셋 마이그레이션 (구버전의 등급이 남아있으면 새로 매핑)
+function initForceSync() {
+  const cachedMembers = localStorage.getItem('boardgye_members');
+  if (cachedMembers) {
+    try {
+      const parsed = JSON.parse(cachedMembers);
+      // 구형 등급(실버 다이스 등)이 존재할 경우 포맷팅 갱신을 위해 캐시 제거
+      const hasOldRole = parsed.some(m => m.role.includes("다이스") || m.role.includes("일반 회원"));
+      if (hasOldRole) {
+        localStorage.removeItem('boardgye_members');
+        localStorage.removeItem('boardgye_events');
+      }
+    } catch(e) {
+      localStorage.removeItem('boardgye_members');
+    }
+  }
 }
 
 function showToast(message, isSuccess = true) {
@@ -554,7 +573,6 @@ window.openMemberProfile = function(memberName) {
     </div>
   `;
 
-  // [신규] 수정 폼에 현재 선택된 멤버 데이터 미리 세팅
   document.getElementById('edit-member-target-name').value = member.name;
   document.getElementById('edit-member-role-select').value = member.role;
   document.getElementById('edit-member-intro-chk').checked = (member.intro === 'O');
@@ -563,7 +581,6 @@ window.openMemberProfile = function(memberName) {
   modal.classList.add('active');
 };
 
-// [신규] 운영진용 멤버 정보 수정 제출 핸들러
 function handleEditMemberSubmit(e) {
   e.preventDefault();
   const targetName = document.getElementById('edit-member-target-name').value;
@@ -577,7 +594,7 @@ function handleEditMemberSubmit(e) {
   saveData();
   document.getElementById('member-profile-modal').classList.remove('active');
   renderApp();
-  showToast(`${targetName} 회원의 권한 및 정보가 저장되었습니다.`);
+  showToast(`${targetName} 회원의 등급 및 인증 정보가 변경되었습니다.`);
 }
 
 function closeMemberProfile() {
@@ -589,7 +606,7 @@ function renderMyProfileTab() {
   if (!me) return;
 
   const cardContainer = document.getElementById('my-profile-card-container');
-  const isLeader = me.role.includes("모임장");
+  const isLeader = me.role.includes("관리자") || me.role.includes("운영진");
 
   cardContainer.innerHTML = `
     <div class="glass-card" style="display: flex; flex-direction: column; gap: 20px; position: relative;">
@@ -950,18 +967,7 @@ function handleCreateEvent(e) {
   showToast(`모임이 개설되었습니다! (출석코드: ${randomCode})`);
 }
 
-function initForceSync() {
-  const events = localStorage.getItem('boardgye_events');
-  if (events) {
-    const parsed = JSON.parse(events);
-    if (parsed.length < 10) {
-      localStorage.removeItem('boardgye_events');
-    }
-  }
-}
-
 function initEventListeners() {
-  // 로그인 및 회원가입 전환 토글 리스너
   const loginCard = document.getElementById('card-login-view');
   const regCard = document.getElementById('card-register-view');
 
