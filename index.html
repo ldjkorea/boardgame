@@ -203,7 +203,7 @@
                 </div>
               </div>
 
-              <!-- 3. 무제한 입장권 (상세 횟수 설명 삭제 및 빈칸 처리) -->
+              <!-- 3. 무제한 입장권 -->
               <div class="price-item" style="border-color: rgba(244, 114, 182, 0.3); background: linear-gradient(135deg, rgba(244, 114, 182, 0.05) 0%, rgba(8, 9, 13, 0.1) 100%);">
                 <div class="price-header">
                   <span class="price-badge" style="background: rgba(244, 114, 182, 0.2); color: #f472b6; border-color: rgba(244, 114, 182, 0.4);">MONTHLY PASS</span>
@@ -232,6 +232,20 @@
               + 모임 개설
             </button>
           </div>
+
+          <!-- [신규] 카테고리 대분류 탭 바 & 세부 분류 태그 바 -->
+          <div class="event-filter-wrapper" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px;">
+            <!-- 대분류 탭 -->
+            <div class="category-main-tabs" style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; overflow-x: auto;">
+              <span class="category-main-tab active" onclick="filterMainCategory('all')">전체</span>
+              <span class="category-main-tab" onclick="filterMainCategory('보드게임')">보드게임</span>
+              <span class="category-main-tab" onclick="filterMainCategory('특수활동')">특수활동</span>
+              <span class="category-main-tab" onclick="filterMainCategory('모임활동')">모임활동</span>
+            </div>
+            <!-- 세부 분류 칩 목록 -->
+            <div id="category-sub-chips" style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;"></div>
+          </div>
+
           <div id="event-list-container" class="event-list"></div>
         </section>
 
@@ -335,6 +349,25 @@
             <label for="event-date-input">일시</label>
             <input type="datetime-local" id="event-date-input" class="form-control" required>
           </div>
+          
+          <!-- [신규] 카테고리 연동 선택 폼 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="event-main-cat">모임 대분류</label>
+              <select id="event-main-cat" class="form-control" style="background: #181a21;" onchange="updateSubCategoryOptions('create')">
+                <option value="보드게임">보드게임</option>
+                <option value="특수활동">특수활동</option>
+                <option value="모임활동">모임활동</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="event-sub-cat">세부 분류</label>
+              <select id="event-sub-cat" class="form-control" style="background: #181a21;">
+                <!-- JS에서 동적 주입 -->
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="event-location-input">장소</label>
             <input type="text" id="event-location-input" class="form-control" value="[이수] 보드계 아지트" required>
@@ -373,6 +406,25 @@
             <label for="edit-date-input">일시</label>
             <input type="datetime-local" id="edit-date-input" class="form-control" required>
           </div>
+
+          <!-- [신규] 수정 폼 내 카테고리 셀렉트 박스 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
+            <div class="form-group" style="margin: 0;">
+              <label for="edit-main-cat">모임 대분류</label>
+              <select id="edit-main-cat" class="form-control" style="background: #181a21;" onchange="updateSubCategoryOptions('edit')">
+                <option value="보드게임">보드게임</option>
+                <option value="특수활동">특수활동</option>
+                <option value="모임활동">모임활동</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label for="edit-sub-cat">세부 분류</label>
+              <select id="edit-sub-cat" class="form-control" style="background: #181a21;">
+                <!-- JS에서 동적 주입 -->
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="edit-location-input">장소</label>
             <input type="text" id="edit-location-input" class="form-control" required>
@@ -475,6 +527,34 @@
           <div style="display: flex; gap: 12px; margin-top: 14px;">
             <button type="button" class="btn btn-secondary" style="flex: 1; padding: 12px;" id="btn-close-member-modal-confirm">취소</button>
             <button type="submit" class="btn" style="flex: 1; padding: 12px; background: var(--primary-glow);">변경사항 저장</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- [신규 추가] 모달: 운영진용 모임 직권 참가자 강제 편집 팝업 -->
+    <div id="event-participants-modal" class="modal-overlay">
+      <div class="modal-content" style="max-width: 440px;">
+        <div class="modal-header">
+          <h3 class="modal-title">모임 참가자 직권 제어</h3>
+          <button class="modal-close" id="btn-close-participants-modal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        
+        <form id="edit-event-participants-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <input type="hidden" id="participants-modal-event-id">
+          <p style="font-size: 12px; color: var(--text-muted);">
+            선택한 멤버가 해당 모임에 강제로 참가 신청/등록 처리됩니다.
+          </p>
+          
+          <div id="participants-checkbox-list" style="max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; border: 1px solid var(--border-color); padding: 12px; border-radius: 12px; background: rgba(0,0,0,0.2);">
+            <!-- 동적 주입 -->
+          </div>
+
+          <div style="display: flex; gap: 12px; margin-top: 10px;">
+            <button type="button" class="btn btn-secondary" style="flex: 1; padding: 12px;" id="btn-cancel-participants-modal">취소</button>
+            <button type="submit" class="btn" style="flex: 1; padding: 12px;">참석자 설정 저장</button>
           </div>
         </form>
       </div>
