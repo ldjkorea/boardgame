@@ -1,4 +1,11 @@
-// 사진 기반 모임 일정 정의
+// 카테고리 대분류 및 세부분류 정의
+const CATEGORY_MAP = {
+  "보드게임": ["전략", "파티", "자유"],
+  "특수활동": ["머미", "크씬", "방탈", "클밍"],
+  "모임활동": ["수다", "회식", "축제"]
+};
+
+// 사진 기반 모임 일정 정의 (카테고리 매핑 추가)
 const DEFAULT_EVENTS = [
   {
     id: "evt-02",
@@ -8,7 +15,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: ["박전략", "이루미", "최협력", "정클루", "길시온", "이동준"],
     status: "completed",
-    code: "1002"
+    code: "1002",
+    mainCategory: "보드게임",
+    subCategory: "자유"
   },
   {
     id: "evt-03",
@@ -18,7 +27,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: ["이루미", "박전략", "최협력", "길시온", "이동준"],
     status: "completed",
-    code: "1003"
+    code: "1003",
+    mainCategory: "모임활동",
+    subCategory: "회식"
   },
   {
     id: "evt-04",
@@ -28,7 +39,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: ["박전략", "정클루", "최협력"],
     status: "completed",
-    code: "1004"
+    code: "1004",
+    mainCategory: "보드게임",
+    subCategory: "자유"
   },
   {
     id: "evt-05",
@@ -38,7 +51,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: ["길시온", "이루미", "이동준"],
     status: "completed",
-    code: "1005"
+    code: "1005",
+    mainCategory: "보드게임",
+    subCategory: "자유"
   },
   {
     id: "evt-07",
@@ -48,7 +63,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: ["이루미", "박전략"], 
     status: "ongoing",
-    code: "7707"
+    code: "7707",
+    mainCategory: "특수활동",
+    subCategory: "머미"
   },
   {
     id: "evt-09",
@@ -58,7 +75,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7709"
+    code: "7709",
+    mainCategory: "보드게임",
+    subCategory: "자유"
   },
   {
     id: "evt-10",
@@ -68,7 +87,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7710"
+    code: "7710",
+    mainCategory: "모임활동",
+    subCategory: "회식"
   },
   {
     id: "evt-11",
@@ -78,7 +99,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7711"
+    code: "7711",
+    mainCategory: "보드게임",
+    subCategory: "파티"
   },
   {
     id: "evt-12",
@@ -88,7 +111,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7712"
+    code: "7712",
+    mainCategory: "특수활동",
+    subCategory: "클밍"
   },
   {
     id: "evt-14",
@@ -98,7 +123,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7714"
+    code: "7714",
+    mainCategory: "보드게임",
+    subCategory: "전략"
   },
   {
     id: "evt-16",
@@ -108,7 +135,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7716"
+    code: "7716",
+    mainCategory: "모임활동",
+    subCategory: "축제"
   },
   {
     id: "evt-17",
@@ -118,7 +147,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7717"
+    code: "7717",
+    mainCategory: "모임활동",
+    subCategory: "축제"
   },
   {
     id: "evt-18",
@@ -128,7 +159,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7718"
+    code: "7718",
+    mainCategory: "모임활동",
+    subCategory: "축제"
   },
   {
     id: "evt-19",
@@ -138,7 +171,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7719"
+    code: "7719",
+    mainCategory: "모임활동",
+    subCategory: "축제"
   },
   {
     id: "evt-21",
@@ -148,7 +183,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7721"
+    code: "7721",
+    mainCategory: "모임활동",
+    subCategory: "수다"
   },
   {
     id: "evt-26",
@@ -158,7 +195,9 @@ const DEFAULT_EVENTS = [
     limit: 10,
     participants: [],
     status: "scheduled",
-    code: "7726"
+    code: "7726",
+    mainCategory: "모임활동",
+    subCategory: "수다"
   }
 ];
 
@@ -177,19 +216,21 @@ let state = {
   events: [],
   members: [],
   currentUser: null,
-  activeTab: "home"
+  activeTab: "home",
+  // [필터 상태 추가]
+  filterMainCategory: "all",
+  filterSubCategory: "all"
 };
 
 function initForceSync() {
   const cachedMembers = localStorage.getItem('boardgye_members');
+  const cachedEvents = localStorage.getItem('boardgye_events');
   let needReset = false;
 
   if (cachedMembers) {
     try {
       const parsed = JSON.parse(cachedMembers);
       const dongjunMember = parsed.find(m => m.name === "이동준");
-      
-      // 혹시라도 구버전 데이터가 메모리를 교란할 시 강제 초기화
       if (!dongjunMember || dongjunMember.date !== "25.11.17" || dongjunMember.count !== 29) {
         needReset = true;
       }
@@ -200,8 +241,20 @@ function initForceSync() {
     needReset = true;
   }
 
+  // 모임 데이터에 카테고리 태그 정보가 없는 구형 스토리지인 경우 강제 리셋
+  if (cachedEvents) {
+    try {
+      const parsedEvt = JSON.parse(cachedEvents);
+      if (parsedEvt.length > 0 && parsedEvt[0].mainCategory === undefined) {
+        needReset = true;
+      }
+    } catch(e) {
+      needReset = true;
+    }
+  }
+
   if (needReset) {
-    console.log("이동준 마스터의 정확한 활동 통계 적용을 위해 스토리지를 갱신합니다.");
+    console.log("카테고리 정리 체계 및 이동준 통계 동기화를 위해 스토리지 캐시를 청소합니다.");
     localStorage.clear();
   }
 }
@@ -473,7 +526,7 @@ function renderHomePass() {
   }
 }
 
-// 회원이 출석코드 제출 시 자동 패스 차감 연산 수행 (명칭 반영)
+// 출석체크 시 패스 자동 차감
 window.handlePassAttendance = function(eventId) {
   const event = state.events.find(e => e.id === eventId);
   if (!event) return;
@@ -494,8 +547,7 @@ window.handlePassAttendance = function(eventId) {
       myProfile.count += 1;
       myProfile.rate = Math.min(100, Math.round(myProfile.rate + 1));
 
-      // [자동 차감 로직 실행]
-      // 1순위: 무제한 입장권 (MONTHLY PASS)
+      // 1순위: MONTHLY PASS
       let hasValidMonthly = false;
       if (myProfile.monthlyPassExpiry) {
         const expiryDate = new Date(myProfile.monthlyPassExpiry);
@@ -509,17 +561,17 @@ window.handlePassAttendance = function(eventId) {
       if (hasValidMonthly) {
         deductionMessage = `무제한 입장권 (MONTHLY PASS) 적용으로 프리패스 출석 완료! 👑`;
       } 
-      // 2순위: 5일 실속 패스 (WEEKLY PASS) 차감
+      // 2순위: WEEKLY PASS
       else if (myProfile.pass5Count && myProfile.pass5Count > 0) {
         myProfile.pass5Count -= 1;
         deductionMessage = `5일 실속 패스 (WEEKLY PASS) 1회 차감 완료! (남은 횟수: ${myProfile.pass5Count}회) 🎟️`;
       } 
-      // 3순위: 이벤트 무료증정권 잔여 차감
+      // 3순위: 이벤트 무료증정권
       else if (myProfile.freePassCount && myProfile.freePassCount > 0) {
         myProfile.freePassCount -= 1;
         deductionMessage = `이벤트 무료증정권 1회 차감 완료! (남은 횟수: ${myProfile.freePassCount}회) 🎁`;
       } 
-      // 4순위: 차감할 패스 없음
+      // 4순위: 일반
       else {
         deductionMessage = `보유 패스 없음: 현장 결제 대상입니다. (DAY PASS 9k / 15k won) 💳`;
       }
@@ -650,6 +702,147 @@ function closeMemberProfile() {
   document.getElementById('member-profile-modal').classList.remove('active');
 }
 
+// [신규] 카테고리 칩 선택 헬퍼 함수
+window.filterMainCategory = function(mainCat) {
+  state.filterMainCategory = mainCat;
+  state.filterSubCategory = "all"; // 메인 변경 시 세부 분류는 '전체'로 초기화
+
+  // 대분류 탭 활성화 클래스 조율
+  const tabs = document.querySelectorAll('.category-main-tab');
+  tabs.forEach(tab => {
+    const text = tab.textContent.trim();
+    if ((mainCat === 'all' && text === '전체') || text === mainCat) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  renderSubChips();
+  renderApp();
+};
+
+window.filterSubCategory = function(subCat) {
+  state.filterSubCategory = subCat;
+  
+  const chips = document.querySelectorAll('.category-sub-chip');
+  chips.forEach(chip => {
+    const text = chip.textContent.trim();
+    if ((subCat === 'all' && text === '전체') || text === subCat) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+
+  renderApp();
+};
+
+// 세부분류 칩 바 동적 렌더링
+function renderSubChips() {
+  const container = document.getElementById('category-sub-chips');
+  if (!container) return;
+
+  if (state.filterMainCategory === 'all') {
+    container.innerHTML = ""; // 전체 탭일 땐 세부분류 감춤
+    return;
+  }
+
+  const subCats = CATEGORY_MAP[state.filterMainCategory] || [];
+  let markup = `<span class="category-sub-chip ${state.filterSubCategory === 'all' ? 'active' : ''}" onclick="filterSubCategory('all')">전체</span>`;
+  
+  subCats.forEach(sub => {
+    markup += `<span class="category-sub-chip ${state.filterSubCategory === sub ? 'active' : ''}" onclick="filterSubCategory('${sub}')">${sub}</span>`;
+  });
+
+  container.innerHTML = markup;
+}
+
+// 모임 개설/수정 시 세부 카테고리 옵션 자동 업데이트
+window.updateSubCategoryOptions = function(mode) {
+  const mainVal = document.getElementById(mode === 'create' ? 'event-main-cat' : 'edit-main-cat').value;
+  const subSelect = document.getElementById(mode === 'create' ? 'event-sub-cat' : 'edit-sub-cat');
+  if (!subSelect) return;
+
+  const subs = CATEGORY_MAP[mainVal] || [];
+  subSelect.innerHTML = subs.map(sub => `<option value="${sub}">${sub}</option>`).join('');
+};
+
+// [신규] 운영진 전용 직권 모임 참가자 강제 편집 제어 팝업
+window.openParticipantsEditModal = function(eventId) {
+  const event = state.events.find(e => e.id === eventId);
+  if (!event) return;
+
+  document.getElementById('participants-modal-event-id').value = event.id;
+  const listRoot = document.getElementById('participants-checkbox-list');
+  if (!listRoot) return;
+
+  // 전체 회원 체크박스 생성
+  listRoot.innerHTML = state.members.map(member => {
+    const isChecked = event.participants.includes(member.name);
+    return `
+      <label style="display: flex; align-items: center; justify-content: space-between; font-size: 13px; cursor: pointer; padding: 6px 4px; border-bottom: 1px solid rgba(255,255,255,0.02);">
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" name="event-participant-chk" value="${member.name}" ${isChecked ? 'checked' : ''} style="width: 16px; height: 16px;">
+          <strong>${member.name}</strong> 
+          <span style="font-size: 10px; color: var(--text-muted);">(${member.role})</span>
+        </span>
+        <span style="font-size: 11px; color: var(--primary-color);">상생패스: ${member.pass5Count || 0}회</span>
+      </label>
+    `;
+  }).join('');
+
+  document.getElementById('event-participants-modal').classList.add('active');
+};
+
+function handleEditParticipantsSubmit(e) {
+  e.preventDefault();
+  const eventId = document.getElementById('participants-modal-event-id').value;
+  const event = state.events.find(e => e.id === eventId);
+  if (!event) return;
+
+  const checkboxes = document.querySelectorAll('input[name="event-participant-chk"]');
+  const nextParticipants = [];
+
+  checkboxes.forEach(chk => {
+    if (chk.checked) {
+      nextParticipants.push(chk.value);
+    }
+  });
+
+  if (nextParticipants.length > event.limit) {
+    showToast(`모임 정원(${event.limit}명)을 초과해 참가자를 강제 등록할 수 없습니다.`, false);
+    return;
+  }
+
+  // [중요: 직권 신규 등록된 인원 대상 자동 패스 차감 반영]
+  nextParticipants.forEach(name => {
+    // 기존에 이미 참가해 있던 멤버는 제외
+    if (!event.participants.includes(name)) {
+      const memberProfile = state.members.find(m => m.name === name);
+      if (memberProfile) {
+        memberProfile.count += 1;
+        memberProfile.rate = Math.min(100, Math.round(memberProfile.rate + 1));
+        
+        // 5회 상생 패스 차감 처리
+        if (memberProfile.pass5Count && memberProfile.pass5Count > 0) {
+          memberProfile.pass5Count -= 1;
+        } 
+        // 5회 패스 없으면 이벤트 무료권 차감
+        else if (memberProfile.freePassCount && memberProfile.freePassCount > 0) {
+          memberProfile.freePassCount -= 1;
+        }
+      }
+    }
+  });
+
+  event.participants = nextParticipants;
+  saveData();
+  document.getElementById('event-participants-modal').classList.remove('active');
+  renderApp();
+  showToast("모임 참가 인원 명부가 직권으로 업데이트되었습니다.");
+}
+
 function renderMyProfileTab() {
   const me = state.members.find(m => m.name === state.currentUser);
   if (!me) return;
@@ -704,7 +897,7 @@ function renderMyProfileTab() {
     </div>
   `;
 
-  // 개인 보유 패스 잔량 렌더링 (최종 브랜드명 반영)
+  // 개인 보유 패스 잔량 렌더링
   const passCard = document.getElementById('my-pass-stock-card');
   const passRoot = document.getElementById('my-pass-stock-list');
   if (passCard && passRoot) {
@@ -812,6 +1005,11 @@ window.editEvent = function(eventId) {
   document.getElementById('edit-status-select').value = event.status;
   document.getElementById('edit-code-input').value = event.code;
 
+  // 카테고리 로드 및 매핑
+  document.getElementById('edit-main-cat').value = event.mainCategory || "보드게임";
+  updateSubCategoryOptions('edit');
+  document.getElementById('edit-sub-cat').value = event.subCategory || "자유";
+
   document.getElementById('edit-event-modal').classList.add('active');
 };
 
@@ -828,6 +1026,10 @@ function handleEditEventSubmit(e) {
   event.limit = parseInt(document.getElementById('edit-limit-input').value);
   event.status = document.getElementById('edit-status-select').value;
   event.code = document.getElementById('edit-code-input').value;
+
+  // 카테고리 정보 저장
+  event.mainCategory = document.getElementById('edit-main-cat').value;
+  event.subCategory = document.getElementById('edit-sub-cat').value;
 
   saveData();
   document.getElementById('edit-event-modal').classList.remove('active');
@@ -857,84 +1059,117 @@ function renderApp() {
 
   const eventListContainer = document.getElementById('event-list-container');
   if (eventListContainer) {
-    const sortedEvents = [...state.events].sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
-
-    eventListContainer.innerHTML = sortedEvents.map(evt => {
-      const isJoined = evt.participants.includes(state.currentUser);
-      const dateFormatted = new Date(evt.datetime).toLocaleString('ko-KR', {
-        month: 'short',
-        day: 'numeric',
-        weekday: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-
-      let statusText = '모집중';
-      let statusClass = 'scheduled';
-      if (evt.status === 'ongoing') {
-        statusText = '진행중';
-        statusClass = 'ongoing';
-      } else if (evt.status === 'completed') {
-        statusText = '완료됨';
-        statusClass = 'completed';
+    // [중요: 카테고리 실시간 필터링 반영]
+    let filteredEvents = [...state.events];
+    
+    if (state.filterMainCategory !== 'all') {
+      filteredEvents = filteredEvents.filter(e => e.mainCategory === state.filterMainCategory);
+      if (state.filterSubCategory !== 'all') {
+        filteredEvents = filteredEvents.filter(e => e.subCategory === state.filterSubCategory);
       }
+    }
 
-      const maxVisibleAvatars = 4;
-      const avatarsMarkup = evt.participants.slice(0, maxVisibleAvatars).map(name => {
-        const initial = name.charAt(0);
-        return `<div class="avatar">${initial}</div>`;
-      }).join('');
-      
-      const extraCount = evt.participants.length - maxVisibleAvatars;
-      const extraMarkup = extraCount > 0 ? `<div class="avatar" style="background: rgba(255,255,255,0.1)">+${extraCount}</div>` : '';
+    const sortedEvents = filteredEvents.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
 
-      return `
-        <div class="glass-card event-card">
-          <div class="event-card-header">
-            <div>
-              <h4 class="event-title">${evt.title}</h4>
-              <span class="section-subtitle">${dateFormatted}</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              ${state.isAdmin ? `<button class="role-badge" style="border-color: rgba(255,255,255,0.15); color: #fff;" onclick="editEvent('${evt.id}')">수정</button>` : ''}
-              <span class="event-badge ${statusClass}">${statusText}</span>
-            </div>
-          </div>
-          
-          <div class="event-info">
-            <div class="info-row">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-              <span>${evt.location}</span>
-            </div>
-            <div class="info-row">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-              <span>참가인원: ${evt.participants.length} / ${evt.limit}명</span>
-            </div>
-          </div>
-
-          <div class="event-card-footer">
-            <div class="participants-avatars">
-              ${avatarsMarkup}
-              ${extraMarkup}
-            </div>
-
-            <div>
-              ${
-                evt.status === 'completed'
-                  ? `<span style="color: var(--text-muted); font-size: 13px;">종료된 모임</span>`
-                  : evt.status === 'ongoing'
-                    ? isJoined
-                      ? `<span style="color: var(--accent-green); font-weight: 700; font-size: 13px;">출석 완료</span>`
-                      : `<button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="switchToTab('home')">홈에서 출석하기</button>`
-                    : isJoined
-                      ? `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="toggleJoinEvent('${evt.id}')">신청 취소</button>`
-                      : `<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="toggleJoinEvent('${evt.id}')">참가 신청</button>`
-              }
-            </div>
-          </div>
+    if (sortedEvents.length === 0) {
+      eventListContainer.innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 40px 0;">
+          해당 분류의 모임 일정이 존재하지 않습니다. 🎲
         </div>
       `;
-    }).join('');
+    } else {
+      eventListContainer.innerHTML = sortedEvents.map(evt => {
+        const isJoined = evt.participants.includes(state.currentUser);
+        const dateFormatted = new Date(evt.datetime).toLocaleString('ko-KR', {
+          month: 'short',
+          day: 'numeric',
+          weekday: 'short',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        let statusText = '모집중';
+        let statusClass = 'scheduled';
+        if (evt.status === 'ongoing') {
+          statusText = '진행중';
+          statusClass = 'ongoing';
+        } else if (evt.status === 'completed') {
+          statusText = '완료됨';
+          statusClass = 'completed';
+        }
+
+        const maxVisibleAvatars = 4;
+        const avatarsMarkup = evt.participants.slice(0, maxVisibleAvatars).map(name => {
+          const initial = name.charAt(0);
+          return `<div class="avatar">${initial}</div>`;
+        }).join('');
+        
+        const extraCount = evt.participants.length - maxVisibleAvatars;
+        const extraMarkup = extraCount > 0 ? `<div class="avatar" style="background: rgba(255,255,255,0.1)">+${extraCount}</div>` : '';
+
+        // 카테고리 정보 표식 디자인
+        const mainCat = evt.mainCategory || "보드게임";
+        const subCat = evt.subCategory || "자유";
+
+        return `
+          <div class="glass-card event-card">
+            <div class="event-card-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                  <span style="font-size: 10px; background: rgba(167, 139, 250, 0.15); color: #c4b5fd; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(167, 139, 250, 0.2); font-weight: 700;">
+                    ${mainCat}
+                  </span>
+                  <span style="font-size: 10px; background: rgba(244, 114, 182, 0.15); color: #f472b6; padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(244, 114, 182, 0.2); font-weight: 700;">
+                    ${subCat}
+                  </span>
+                </div>
+                <h4 class="event-title">${evt.title}</h4>
+                <span class="section-subtitle">${dateFormatted}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                ${state.isAdmin ? `<button class="role-badge" style="border-color: rgba(255,255,255,0.15); color: #fff;" onclick="editEvent('${evt.id}')">수정</button>` : ''}
+                <span class="event-badge ${statusClass}">${statusText}</span>
+              </div>
+            </div>
+            
+            <div class="event-info">
+              <div class="info-row">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>${evt.location}</span>
+              </div>
+              <div class="info-row">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>참가인원: ${evt.participants.length} / ${evt.limit}명</span>
+              </div>
+            </div>
+
+            <div class="event-card-footer">
+              <div class="participants-avatars">
+                ${avatarsMarkup}
+                ${extraMarkup}
+              </div>
+
+              <div style="display: flex; gap: 8px; align-items: center;">
+                <!-- [운영자 전용 직권 참가자 강제 편집 버튼] -->
+                ${state.isAdmin && evt.status !== 'completed' ? `<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px; border-color: rgba(167, 139, 250, 0.25); color: #c4b5fd;" onclick="openParticipantsEditModal('${evt.id}')">참가자 편집</button>` : ''}
+                
+                ${
+                  evt.status === 'completed'
+                    ? `<span style="color: var(--text-muted); font-size: 13px;">종료된 모임</span>`
+                    : evt.status === 'ongoing'
+                      ? isJoined
+                        ? `<span style="color: var(--accent-green); font-weight: 700; font-size: 13px;">출석 완료</span>`
+                        : `<button class="btn" style="padding: 6px 12px; font-size: 12px;" onclick="switchToTab('home')">홈에서 출석하기</button>`
+                      : isJoined
+                        ? `<button class="btn btn-danger" style="padding: 6px 12px; font-size: 12px;" onclick="toggleJoinEvent('${evt.id}')">신청 취소</button>`
+                        : `<button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="toggleJoinEvent('${evt.id}')">참가 신청</button>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   }
 
   const rankContainer = document.getElementById('rank-list-container');
@@ -1025,6 +1260,9 @@ function handleCreateEvent(e) {
   const limit = parseInt(document.getElementById('event-limit-input').value);
   const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
 
+  const mainCategory = document.getElementById('event-main-cat').value;
+  const subCategory = document.getElementById('event-sub-cat').value;
+
   const newEvent = {
     id: `evt-${Date.now()}`,
     title,
@@ -1033,7 +1271,9 @@ function handleCreateEvent(e) {
     limit,
     participants: [state.currentUser],
     status: "ongoing",
-    code: randomCode
+    code: randomCode,
+    mainCategory,
+    subCategory
   };
 
   state.events.unshift(newEvent);
@@ -1069,6 +1309,7 @@ function initEventListeners() {
 
   document.getElementById('btn-create-event-modal').addEventListener('click', () => {
     document.getElementById('create-event-modal').classList.add('active');
+    updateSubCategoryOptions('create'); // 개설 모달 열릴 때 서브카테고리 초기 옵션 주입
   });
 
   const closeCreate = () => document.getElementById('create-event-modal').classList.remove('active');
@@ -1085,6 +1326,12 @@ function initEventListeners() {
   document.getElementById('btn-close-member-modal').addEventListener('click', closeMember);
   document.getElementById('btn-close-member-modal-confirm').addEventListener('click', closeMember);
 
+  // 참가자 편집 모달 이벤트 리스너
+  const closeParticipants = () => document.getElementById('event-participants-modal').classList.remove('active');
+  document.getElementById('btn-close-participants-modal').addEventListener('click', closeParticipants);
+  document.getElementById('btn-cancel-participants-modal').addEventListener('click', closeParticipants);
+  document.getElementById('edit-event-participants-form').addEventListener('submit', handleEditParticipantsSubmit);
+
   document.getElementById('btn-reset-data').addEventListener('click', () => {
     localStorage.removeItem('boardgye_events');
     localStorage.removeItem('boardgye_members');
@@ -1098,9 +1345,11 @@ function initEventListeners() {
     const createModal = document.getElementById('create-event-modal');
     const editModal = document.getElementById('edit-event-modal');
     const memberModal = document.getElementById('member-profile-modal');
+    const participantsModal = document.getElementById('event-participants-modal');
     if (e.target === createModal) closeCreate();
     if (e.target === editModal) closeEdit();
     if (e.target === memberModal) closeMember();
+    if (e.target === participantsModal) closeParticipants();
   });
 }
 
